@@ -1,6 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
 
-import { countries, findCountryByQuery, normalizeSearchQuery } from "@/lib/public-data";
+import { PublicHeader } from "@/components/public-header";
+import { getSearchResults } from "@/lib/travel-data";
+
+export const revalidate = 3600;
 
 type SearchPageProps = {
   searchParams: Promise<{
@@ -10,104 +14,106 @@ type SearchPageProps = {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const resolvedSearchParams = await searchParams;
-  const query = normalizeSearchQuery(resolvedSearchParams.q);
-  const selectedCountry = findCountryByQuery(resolvedSearchParams.q);
+  const { country, destinations, providerConfigured, source } = await getSearchResults(resolvedSearchParams.q);
 
   return (
-    <main className="flex-1 py-6 md:py-10">
-      <div className="page-shell flex flex-col gap-8">
-        <header className="soft-panel rounded-[2rem] p-5 sm:p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <Link href="/" className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-orange">
-                Back to landing
-              </Link>
-              <h1 className="mt-3 font-display text-4xl font-semibold tracking-[-0.04em] text-brand-ink sm:text-5xl">
-                Popular places in {selectedCountry.name}
-              </h1>
-              <p className="mt-3 text-sm leading-7 text-muted sm:text-base">
-                {selectedCountry.teaser} This page is already structured like the eventual anonymous discovery flow: search a country, scan its popular places, and open a detail page.
-              </p>
-            </div>
+    <main className="flex-1 pb-10 md:pb-14">
+      <PublicHeader />
 
-            <form action="/search" method="get" className="flex w-full max-w-xl flex-col gap-3 sm:flex-row">
-              <label className="sr-only" htmlFor="country-search">
-                Search country
-              </label>
-              <input
-                id="country-search"
-                type="search"
-                name="q"
-                defaultValue={query || selectedCountry.slug}
-                placeholder="Try France, Italy or Spain"
-                className="min-w-0 flex-1 rounded-full bg-white px-5 py-3.5 text-brand-ink outline-none ring-1 ring-brand-navy/10 placeholder:text-muted/70"
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-brand-navy px-5 py-3.5 text-sm font-bold text-white transition hover:bg-brand-blue"
-              >
-                Search
-              </button>
-            </form>
+      <div className="page-shell pt-8 md:pt-12">
+        <div className="flex items-center gap-4 text-brand-navy md:gap-6">
+          <Link
+            href="/"
+            aria-label="Back to landing"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-brand-navy/5"
+          >
+            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="m14 6-6 6 6 6" />
+              <path d="M8.5 12H20" />
+            </svg>
+          </Link>
+        </div>
+
+        <div className="mt-4 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-5xl font-semibold uppercase tracking-[-0.05em] text-brand-navy sm:text-6xl md:text-7xl">
+              {country.name}
+            </h1>
           </div>
-        </header>
 
-        <section className="grid gap-4 md:grid-cols-3">
-          {countries.map((country) => {
-            const isActive = country.slug === selectedCountry.slug;
+          <form action="/search" method="get" className="hidden items-center gap-3 md:flex">
+            <input
+              type="search"
+              name="q"
+              defaultValue={country.name}
+              placeholder="Buscar pais"
+              className="w-64 rounded-full bg-white px-5 py-3 text-brand-ink outline-none ring-1 ring-brand-navy/10 placeholder:text-muted/70"
+            />
+            <button type="submit" className="rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-blue">
+              Buscar
+            </button>
+          </form>
+        </div>
 
-            return (
-              <Link
-                key={country.slug}
-                href={`/search?q=${country.slug}`}
-                className={`rounded-[1.75rem] border p-5 transition ${
-                  isActive
-                    ? "border-brand-orange bg-white shadow-lg shadow-brand-orange/10"
-                    : "border-brand-navy/10 bg-white/75 hover:border-brand-navy/25"
-                }`}
-              >
-                <div className="font-display text-2xl font-semibold text-brand-navy">{country.name}</div>
-                <p className="mt-2 text-sm leading-6 text-muted">{country.teaser}</p>
-              </Link>
-            );
-          })}
-        </section>
+        <form action="/search" method="get" className="mt-6 flex items-center gap-3 md:hidden">
+          <input
+            type="search"
+            name="q"
+            defaultValue={country.name}
+            placeholder="Buscar pais"
+            className="min-w-0 flex-1 rounded-full bg-white px-5 py-3 text-brand-ink outline-none ring-1 ring-brand-navy/10 placeholder:text-muted/70"
+          />
+          <button type="submit" className="rounded-full bg-brand-navy px-4 py-3 text-sm font-bold text-white transition hover:bg-brand-blue">
+            Buscar
+          </button>
+        </form>
 
-        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {selectedCountry.places.map((place, index) => (
-            <article
-              key={place.slug}
-              className="hero-card min-h-80 p-5 text-white"
-              style={{
-                background:
-                  index % 3 === 0
-                    ? "linear-gradient(160deg, rgba(255,100,47,0.9), rgba(10,48,120,0.75))"
-                    : index % 3 === 1
-                      ? "linear-gradient(145deg, rgba(10,48,120,0.92), rgba(67,113,201,0.68))"
-                      : "linear-gradient(145deg, rgba(3,18,42,0.9), rgba(255,100,47,0.78), rgba(255,214,147,0.55))",
-              }}
+        <section className="mt-10 grid gap-y-12 sm:grid-cols-2 sm:gap-x-8 md:mt-12 md:grid-cols-3 md:gap-y-16 lg:gap-x-14">
+          {destinations.map((destination) => (
+            <Link
+              key={`${destination.slug}-${destination.title}`}
+              href={`/places/${destination.slug}?title=${encodeURIComponent(destination.title)}&country=${encodeURIComponent(destination.countryName)}`}
+              className="group flex flex-col items-center text-center"
             >
-              <div className="flex h-full flex-col justify-between">
-                <div className="rounded-full bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-white/85 backdrop-blur-sm w-fit">
-                  {selectedCountry.name}
-                </div>
-
-                <div>
-                  <h2 className="font-display text-3xl font-semibold">{place.name}</h2>
-                  <p className="mt-3 text-sm leading-6 text-white/85">{place.summary}</p>
-                  <p className="mt-2 text-sm font-semibold text-white/90">{place.vibe}</p>
-
-                  <Link
-                    href={`/places/${place.slug}`}
-                    className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-bold text-brand-navy transition hover:bg-brand-orange hover:text-white"
-                  >
-                    Open destination
-                  </Link>
-                </div>
+              <div className="relative aspect-square w-full max-w-[12.5rem] overflow-hidden rounded-[2px] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.16)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_rgba(10,48,120,0.18)] sm:max-w-[13rem] md:max-w-[14rem] lg:max-w-[15rem]">
+                {destination.imageUrl ? (
+                  <Image
+                    src={destination.imageUrl}
+                    alt={destination.title}
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 15rem"
+                    className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <div className="h-full w-full bg-gradient-to-br from-brand-orange/60 via-white to-brand-navy/30" />
+                )}
               </div>
-            </article>
+              <h2 className="mt-7 text-2xl font-extrabold uppercase tracking-[-0.03em] text-brand-burnt md:text-[2rem]">
+                {destination.title}
+              </h2>
+            </Link>
           ))}
         </section>
+
+        {destinations.length === 0 ? (
+          <div className="mt-12 rounded-[2rem] bg-white/80 p-6 text-center ring-1 ring-brand-navy/10">
+            <h2 className="font-display text-3xl font-semibold text-brand-navy">Aun no hay ciudades disponibles</h2>
+            <p className="mt-3 text-sm leading-7 text-muted">
+              {providerConfigured
+                ? `Los proveedores actuales no devolvieron coincidencias de ciudad suficientemente solidas para ${country.name}. Prueba con otro pais mientras afinamos el ranking.`
+                : `Las claves de proveedores en vivo no estan configuradas, asi que la busqueda recurre a ciudades integradas y destinos curados cuando estan disponibles.`}
+            </p>
+          </div>
+        ) : null}
+
+        <p className="mt-8 text-center text-xs uppercase tracking-[0.22em] text-muted/80 md:text-left">
+          Fuente: {source}
+          {providerConfigured ? "" : " · usando destinos sin conexion"}
+        </p>
+      </div>
+
+      <div className="pointer-events-none fixed bottom-5 right-5 z-10 md:bottom-6 md:right-8">
+        <Image src="/icons/chat.svg" alt="Chat" width={60} height={60} className="h-14 w-14 md:h-[60px] md:w-[60px]" />
       </div>
     </main>
   );

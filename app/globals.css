@@ -284,6 +284,5 @@ input {
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;
-  .motion-chat-in,
-  .poi-dialog-enter {
+  }
 }

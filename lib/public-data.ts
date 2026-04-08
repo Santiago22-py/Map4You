@@ -31,26 +31,26 @@ const places: Place[] = [
     countrySlug: "france",
     countryName: "France",
     name: "Paris",
-    summary: "Architecture, river walks, and iconic neighborhoods wrapped into one city.",
+    summary: "Arquitectura, paseos junto al rio y barrios iconicos concentrados en una sola ciudad.",
     description:
-      "Paris balances museum-heavy mornings, café terraces, fashion streets, and late-night views over the Seine. It is ideal for travelers who want a dense, layered city where every arrondissement feels different.",
-    vibe: "Romantic city breaks and culture-first itineraries",
-    bestFor: ["Weekend escapes", "Museums", "Food lovers", "First-time Europe trips"],
-    gallery: ["Golden hour skyline", "Seine riverside", "Neighborhood cafés"],
+      "Paris combina mananas de museos, terrazas de cafe, calles con estilo y vistas nocturnas sobre el Sena. Es ideal para quienes buscan una ciudad densa y con muchas capas, donde cada arrondissement se siente distinto.",
+    vibe: "Escapadas romanticas y recorridos centrados en cultura",
+    bestFor: ["Escapadas de fin de semana", "Museos", "Viajes gastronomicos", "Primer viaje a Europa"],
+    gallery: ["Skyline en hora dorada", "Orillas del Sena", "Cafes de barrio"],
     stay: [
-      { name: "Le Marais Boutique Stay", detail: "Walkable base close to galleries, pastry shops, and lively evenings." },
-      { name: "Saint-Germain Apartment", detail: "Quiet mornings, bookstores, and easy access to the river." },
-      { name: "Canal Saint-Martin Loft", detail: "A more local-feeling option for long walks and casual dining." },
+      { name: "Estancia Boutique Le Marais", detail: "Una base muy caminable cerca de galerias, pastelerias y zonas animadas al caer la tarde." },
+      { name: "Apartamento Saint-Germain", detail: "Buenas mananas tranquilas, librerias y acceso sencillo al rio." },
+      { name: "Loft Canal Saint-Martin", detail: "Una opcion con un aire mas local para paseos largos y comidas informales." },
     ],
     eat: [
-      { name: "Rue Cler Food Run", detail: "Cheese, pastries, picnic supplies, and easy lunch stops." },
-      { name: "Bistro Evening Circuit", detail: "Classic Parisian plates in compact dining rooms with warm lighting." },
-      { name: "Montorgueil Morning Coffee", detail: "Good for a slow start before museums or shopping." },
+      { name: "Ruta Gastronomica Rue Cler", detail: "Quesos, bolleria, compras para picnic y paradas faciles para comer al mediodia." },
+      { name: "Circuito de Bistrós Nocturnos", detail: "Platos parisinos clasicos en comedores pequenos y con ambiente calido." },
+      { name: "Cafe Matinal en Montorgueil", detail: "Muy buena opcion para empezar el dia con calma antes de museos o compras." },
     ],
     visit: [
-      { name: "Louvre and Tuileries", detail: "Best split across a museum block and an afternoon garden walk." },
-      { name: "Montmartre Streets", detail: "A hilltop route with views, staircases, and painterly side streets." },
-      { name: "Seine at Sunset", detail: "Easy anchor activity for the first evening in the city." },
+      { name: "Louvre y Tuileries", detail: "Funciona mejor si se reparte entre un bloque de museo y un paseo por los jardines por la tarde." },
+      { name: "Calles de Montmartre", detail: "Un recorrido en altura con vistas, escaleras y calles laterales con mucho caracter." },
+      { name: "Sena al Atardecer", detail: "Una actividad facil de colocar para la primera tarde o noche en la ciudad." },
     ],
   },
   {
@@ -58,26 +58,26 @@ const places: Place[] = [
     countrySlug: "france",
     countryName: "France",
     name: "Versailles",
-    summary: "Royal interiors, formal gardens, and easy day-trip grandeur from Paris.",
+    summary: "Interiores reales, jardines formales y una gran excursion de un dia desde Paris.",
     description:
-      "Versailles works best as a calm contrast to Paris. The palace draws the headlines, but the estate, canals, and gardens are what turn the visit into a full day rather than a fast checklist stop.",
-    vibe: "Elegant day trips and slow cultural afternoons",
-    bestFor: ["Day trips", "History", "Gardens", "Photography"],
-    gallery: ["Palace façades", "Formal gardens", "Canal reflections"],
+      "Versalles funciona muy bien como contraste tranquilo frente a Paris. El palacio acapara la atencion, pero la finca, los canales y los jardines son lo que convierten la visita en un dia completo y no en una parada rapida.",
+    vibe: "Excursiones elegantes y tardes culturales pausadas",
+    bestFor: ["Excursiones de un dia", "Historia", "Jardines", "Fotografia"],
+    gallery: ["Fachadas del palacio", "Jardines formales", "Reflejos del canal"],
     stay: [
-      { name: "Historic Center Hotel", detail: "Practical for an early estate entry and quiet evening streets." },
-      { name: "Garden-side Guesthouse", detail: "A softer, residential option if you stay overnight." },
-      { name: "Boutique Manor Rooms", detail: "Small-scale luxury for travelers building a slower itinerary." },
+      { name: "Hotel del Centro Historico", detail: "Practico para entrar pronto en el recinto y disfrutar de calles tranquilas por la tarde." },
+      { name: "Casa de Huespedes junto al Jardin", detail: "Una opcion mas residencial y calmada si decides pasar la noche." },
+      { name: "Habitaciones Boutique en Casa Solariega", detail: "Un pequeno lujo para viajeros que prefieren un itinerario mas pausado." },
     ],
     eat: [
-      { name: "Market Square Lunch", detail: "Simple local dishes and produce-led meals near the palace district." },
-      { name: "Tea Room Pause", detail: "Good mid-afternoon stop after covering the palace interiors." },
-      { name: "Brasserie by the Estate", detail: "An easy reset before trains back to Paris." },
+      { name: "Almuerzo en la Plaza del Mercado", detail: "Platos locales sencillos y comidas centradas en producto cerca de la zona del palacio." },
+      { name: "Pausa en Salon de Te", detail: "Buena parada a media tarde despues de recorrer los interiores del palacio." },
+      { name: "Brasserie junto al Recinto", detail: "Un descanso facil antes de volver en tren a Paris." },
     ],
     visit: [
-      { name: "Hall of Mirrors", detail: "Go early to avoid the most crowded window." },
-      { name: "Gardens and Fountains", detail: "The wider estate is where the visit starts to breathe." },
-      { name: "Grand Trianon Route", detail: "A better pick for travelers who prefer quieter corners." },
+      { name: "Galeria de los Espejos", detail: "Conviene ir pronto para evitar la franja con mas gente." },
+      { name: "Jardines y Fuentes", detail: "Es en la parte mas amplia del recinto donde la visita realmente gana aire." },
+      { name: "Ruta del Gran Trianon", detail: "Una mejor eleccion para quienes prefieren rincones mas tranquilos." },
     ],
   },
   {
@@ -85,26 +85,26 @@ const places: Place[] = [
     countrySlug: "france",
     countryName: "France",
     name: "Provence",
-    summary: "Village drives, local markets, warm light, and food-focused slow travel.",
+    summary: "Carreteras entre pueblos, mercados locales, luz calida y viajes lentos centrados en comer bien.",
     description:
-      "Provence is less about one landmark and more about sequence: market mornings, long lunches, scenic roads, and evenings in small towns. It suits travelers who want a softer pace and regional character.",
-    vibe: "Scenic road trips and slow village-hopping",
-    bestFor: ["Road trips", "Markets", "Summer escapes", "Local food"],
-    gallery: ["Village stone streets", "Open-air market stalls", "Countryside light"],
+      "La Provenza gira menos en torno a un unico monumento y mas a una secuencia: mercados por la manana, comidas largas, carreteras escenicas y tardes en pueblos pequenos. Va muy bien para viajeros que buscan un ritmo suave y mucho caracter regional.",
+    vibe: "Rutas escenicas por carretera y pueblos recorridos sin prisa",
+    bestFor: ["Viajes por carretera", "Mercados", "Escapadas de verano", "Comida local"],
+    gallery: ["Calles de piedra", "Puestos de mercado al aire libre", "Luz del campo"],
     stay: [
-      { name: "Countryside Maison", detail: "Base for driving between villages without constant hotel changes." },
-      { name: "Hilltop Inn", detail: "Views, easy dinners, and quieter evenings." },
-      { name: "Lavender Farm Stay", detail: "Works best in seasonal itineraries with outdoor focus." },
+      { name: "Maison Rural", detail: "Buena base para moverse entre pueblos sin cambiar de alojamiento constantemente." },
+      { name: "Posada en la Colina", detail: "Vistas, cenas sencillas y tardes mucho mas tranquilas." },
+      { name: "Estancia en Finca de Lavanda", detail: "Encaja mejor en itinerarios de temporada con mucho tiempo al aire libre." },
     ],
     eat: [
-      { name: "Weekly Market Lunch", detail: "Build a meal from local produce, bread, and cheese stalls." },
-      { name: "Village Terrace Dinner", detail: "Regional menus in small squares with slower service." },
-      { name: "Bakery Breakfast Circuit", detail: "Useful for early departures between towns." },
+      { name: "Almuerzo de Mercado Semanal", detail: "Monta la comida con producto local, pan y puestos de queso del mercado." },
+      { name: "Cena en Terraza de Pueblo", detail: "Menus regionales en plazas pequenas y con un servicio mas pausado." },
+      { name: "Ruta de Desayuno en Panaderias", detail: "Muy util para salir temprano hacia el siguiente pueblo." },
     ],
     visit: [
-      { name: "Luberon Villages", detail: "A compact route for architecture, views, and shopping." },
-      { name: "Arles and Roman Heritage", detail: "Adds a stronger cultural and historical layer." },
-      { name: "Valensole Plateau", detail: "Most rewarding when timed for the right season." },
+      { name: "Pueblos del Luberon", detail: "Una ruta compacta para combinar arquitectura, vistas y pequenas compras." },
+      { name: "Arles y herencia romana", detail: "Aporta una capa cultural e historica mucho mas marcada." },
+      { name: "Meseta de Valensole", detail: "Se disfruta mucho mas si se visita en la temporada adecuada." },
     ],
   },
   {
@@ -112,26 +112,26 @@ const places: Place[] = [
     countrySlug: "italy",
     countryName: "Italy",
     name: "Rome",
-    summary: "Layered history, energetic streets, and long meal-based days.",
+    summary: "Historia en capas, calles con energia y dias largos marcados por la comida.",
     description:
-      "Rome is dense, loud, and endlessly rewarding. It works for travelers who like to move on foot, stop often, and let ruins, piazzas, and neighborhood dinners guide the day rather than a rigid checklist.",
-    vibe: "Historic cities and all-day wandering",
-    bestFor: ["History", "Walking trips", "Food lovers", "City breaks"],
-    gallery: ["Piazza life", "Ancient ruins", "Evening alleys"],
+      "Roma es densa, ruidosa y enormemente agradecida para quien la recorre bien. Funciona para viajeros que disfrutan caminar, parar con frecuencia y dejar que las ruinas, las plazas y las cenas de barrio marquen el ritmo del dia.",
+    vibe: "Grandes ciudades historicas y caminatas de todo el dia",
+    bestFor: ["Historia", "Viajes a pie", "Viajes gastronomicos", "Escapadas urbanas"],
+    gallery: ["Vida en las plazas", "Ruinas antiguas", "Callejones al anochecer"],
     stay: [
-      { name: "Centro Storico Rooms", detail: "Fast access to major landmarks and evening walks." },
-      { name: "Trastevere Townhouse", detail: "Livelier nights and more neighborhood texture." },
-      { name: "Monti Design Hotel", detail: "Good balance of style, dining, and walkability." },
+      { name: "Centro Storico Rooms", detail: "Acceso rapido a los grandes monumentos y a los paseos de ultima hora." },
+      { name: "Casa Urbana en Trastevere", detail: "Noches mas animadas y un barrio con mucha mas textura local." },
+      { name: "Hotel de Diseno en Monti", detail: "Buen equilibrio entre estilo, gastronomia y recorridos a pie." },
     ],
     eat: [
-      { name: "Trastevere Dinner Trail", detail: "Ideal for travelers who want the social energy of the city." },
-      { name: "Morning Espresso Loop", detail: "Short café stops before ruins or museums." },
-      { name: "Testaccio Food Break", detail: "More grounded local food away from the busiest core." },
+      { name: "Ruta de Cenas por Trastevere", detail: "Ideal para quienes buscan la energia social de la ciudad al final del dia." },
+      { name: "Vuelta de Espresso Matinal", detail: "Paradas cortas para cafe antes de entrar en ruinas o museos." },
+      { name: "Parada Gastronomica en Testaccio", detail: "Comida mas local y con los pies en la tierra, fuera del nucleo mas turistico." },
     ],
     visit: [
-      { name: "Forum and Colosseum Window", detail: "Best tackled early with time left for the surrounding hills." },
-      { name: "Pantheon to Piazza Navona", detail: "A compact route full of Rome's everyday rhythm." },
-      { name: "Vatican Museums", detail: "Worth isolating as its own half-day anchor." },
+      { name: "Foro y Coliseo", detail: "Conviene hacerlo temprano y dejar tiempo para las colinas de alrededor." },
+      { name: "Del Panteon a Piazza Navona", detail: "Una ruta compacta llena del ritmo cotidiano de Roma." },
+      { name: "Museos Vaticanos", detail: "Merece la pena reservarle medio dia completo por separado." },
     ],
   },
   {
@@ -139,26 +139,26 @@ const places: Place[] = [
     countrySlug: "italy",
     countryName: "Italy",
     name: "Florence",
-    summary: "Compact art city with panoramic hills and strong day-trip links.",
+    summary: "Ciudad de arte compacta, colinas panoramicas y muy buena conexion para excursiones.",
     description:
-      "Florence offers a tighter, more walkable rhythm than Rome. Travelers can split time between Renaissance landmarks, riverside evenings, and easy escapes into Tuscany.",
-    vibe: "Art-focused weekends and slower Tuscany gateways",
-    bestFor: ["Art", "Walkability", "Couples", "Tuscany access"],
-    gallery: ["Duomo skyline", "Arno sunset", "Studio details"],
+      "Florencia tiene un ritmo mas compacto y caminable que Roma. Permite repartir el tiempo entre monumentos renacentistas, tardes junto al rio y escapadas sencillas a la Toscana.",
+    vibe: "Fines de semana centrados en arte y entrada pausada a la Toscana",
+    bestFor: ["Arte", "Recorridos a pie", "Parejas", "Acceso a la Toscana"],
+    gallery: ["Skyline del Duomo", "Atardecer en el Arno", "Detalles de taller"],
     stay: [
-      { name: "Duomo Quarter Hotel", detail: "Best for short first visits that prioritize central access." },
-      { name: "Oltrarno Guesthouse", detail: "Craft-focused neighborhood with a calmer evening feel." },
-      { name: "Riverside Suites", detail: "Useful when balancing city time with day trips." },
+      { name: "Hotel del Barrio del Duomo", detail: "Muy comodo para primeras visitas cortas que priorizan estar en el centro." },
+      { name: "Casa de Huespedes en Oltrarno", detail: "Barrio con tradicion artesanal y un ambiente mas calmado por la tarde." },
+      { name: "Suites junto al Rio", detail: "Util cuando quieres equilibrar tiempo en ciudad con alguna excursion." },
     ],
     eat: [
-      { name: "Mercato Centrale Stop", detail: "Good range for mixed groups and quick lunches." },
-      { name: "Oltrarno Dinner Tables", detail: "Less rushed than the busiest center spots." },
-      { name: "Sunset Aperitivo", detail: "Best paired with viewpoints above the city." },
+      { name: "Parada en Mercato Centrale", detail: "Buena variedad para grupos mixtos y comidas rapidas al mediodia." },
+      { name: "Mesas de Cena en Oltrarno", detail: "Mas tranquilo que los puntos mas saturados del centro." },
+      { name: "Aperitivo al Atardecer", detail: "Funciona especialmente bien si lo combinas con un mirador sobre la ciudad." },
     ],
     visit: [
-      { name: "Duomo and Piazza Core", detail: "The architectural centerpiece of a first visit." },
-      { name: "Uffizi Session", detail: "Works best when kept focused rather than exhaustive." },
-      { name: "Piazzale Michelangelo", detail: "Reliable golden-hour finish." },
+      { name: "Duomo y Plaza Central", detail: "El nucleo arquitectonico que mejor resume una primera visita." },
+      { name: "Visita a los Uffizi", detail: "Se disfruta mas si se plantea como una visita concentrada y no exhaustiva." },
+      { name: "Piazzale Michelangelo", detail: "Un cierre muy fiable para la hora dorada." },
     ],
   },
   {
@@ -166,26 +166,26 @@ const places: Place[] = [
     countrySlug: "spain",
     countryName: "Spain",
     name: "Barcelona",
-    summary: "Beach-city energy, bold architecture, and neighborhood-led exploring.",
+    summary: "Energia de ciudad costera, arquitectura potente y exploracion guiada por barrios.",
     description:
-      "Barcelona blends seaside ease with dense urban texture. It works especially well for travelers who want architecture, markets, and late evenings all within a compact city layout.",
-    vibe: "Design-heavy city escapes with coastal energy",
-    bestFor: ["Architecture", "Weekend trips", "Food", "Summer cities"],
-    gallery: ["Gaudí curves", "Beach light", "Market corridors"],
+      "Barcelona mezcla la facilidad de una ciudad costera con una trama urbana muy densa. Funciona especialmente bien para quienes quieren arquitectura, mercados y noches largas dentro de una ciudad compacta.",
+    vibe: "Escapadas urbanas con mucho diseno y energia mediterranea",
+    bestFor: ["Arquitectura", "Viajes de fin de semana", "Comida", "Ciudades de verano"],
+    gallery: ["Curvas de Gaudi", "Luz de playa", "Pasillos de mercado"],
     stay: [
-      { name: "Eixample Base", detail: "Balanced option for transit, dining, and landmark access." },
-      { name: "Born Boutique Hotel", detail: "Best for evening walks and a livelier street scene." },
-      { name: "Barceloneta Apartment", detail: "Useful if beach time matters as much as city time." },
+      { name: "Base en Eixample", detail: "Opcion equilibrada para moverse bien, comer bien y llegar con facilidad a los principales lugares." },
+      { name: "Hotel Boutique en El Born", detail: "Muy buena eleccion para paseos al atardecer y calles con mas ambiente." },
+      { name: "Apartamento en Barceloneta", detail: "Especialmente util si quieres dar al tiempo de playa tanta importancia como al tiempo de ciudad." },
     ],
     eat: [
-      { name: "Market Lunch Run", detail: "Tapas, produce, and quick plates in central food halls." },
-      { name: "Late Dinner Circuit", detail: "Barcelona rewards travelers who shift later into the evening." },
-      { name: "Vermouth Stops", detail: "An easy neighborhood ritual between major visits." },
+      { name: "Ruta de Almuerzo por Mercados", detail: "Tapas, producto fresco y platos rapidos en mercados y espacios centrales de comida." },
+      { name: "Circuito de Cenas Tardias", detail: "Barcelona recompensa a quienes retrasan el ritmo y se meten de lleno en la noche." },
+      { name: "Paradas para el Vermut", detail: "Un ritual de barrio facil de encajar entre una visita importante y la siguiente." },
     ],
     visit: [
-      { name: "Sagrada Família", detail: "The city anchor; book around it rather than squeezing it in." },
-      { name: "Gothic Quarter", detail: "Best explored by wandering rather than strict routes." },
-      { name: "Bunkers Viewpoint", detail: "A strong city-wide finish at sunset." },
+      { name: "Sagrada Família", detail: "El gran ancla de la ciudad; conviene organizar el dia alrededor de ella y no meterla con prisa." },
+      { name: "Barrio Gotico", detail: "Se disfruta mas caminando sin una ruta demasiado cerrada." },
+      { name: "Mirador de los Bunkers", detail: "Un cierre muy potente para ver la ciudad entera al atardecer." },
     ],
   },
 ];
@@ -194,7 +194,7 @@ export const countries: Country[] = [
   {
     slug: "france",
     name: "France",
-    teaser: "Romantic cities, royal escapes, and sunlit regional drives.",
+    teaser: "Ciudades romanticas, escapadas reales y rutas regionales llenas de luz.",
     places: places
       .filter((place) => place.countrySlug === "france")
       .map(({ slug, name, summary, vibe }) => ({ slug, name, summary, vibe })),
@@ -202,7 +202,7 @@ export const countries: Country[] = [
   {
     slug: "italy",
     name: "Italy",
-    teaser: "Historic cities, gallery weekends, and long meal-led itineraries.",
+    teaser: "Ciudades historicas, fines de semana entre galerias y viajes guiados por la mesa.",
     places: places
       .filter((place) => place.countrySlug === "italy")
       .map(({ slug, name, summary, vibe }) => ({ slug, name, summary, vibe })),
@@ -210,7 +210,7 @@ export const countries: Country[] = [
   {
     slug: "spain",
     name: "Spain",
-    teaser: "Design-heavy city breaks, markets, and coastal warmth.",
+    teaser: "Escapadas urbanas con diseno, mercados y calidez costera.",
     places: places
       .filter((place) => place.countrySlug === "spain")
       .map(({ slug, name, summary, vibe }) => ({ slug, name, summary, vibe })),
@@ -244,4 +244,13 @@ export function findCountryByQuery(query?: string | string[]) {
 
 export function getPlaceBySlug(slug: string) {
   return places.find((place) => place.slug === slug);
+}
+
+export function getPlaceByName(name: string) {
+  const normalized = name.trim().toLowerCase();
+  return places.find((place) => place.name.toLowerCase() === normalized);
+}
+
+export function getPlacesByCountrySlug(countrySlug: string) {
+  return places.filter((place) => place.countrySlug === countrySlug);
 }

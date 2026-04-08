@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Map 4 You
 
-## Getting Started
+Map 4 You is a trip companion web app built with Next.js App Router.
 
-First, run the development server:
+## Development
+
+Install dependencies and start the app:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Travel Data Strategy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The public browse flow currently uses a free-first provider setup:
 
-## Learn More
+- GeoDB Cities for live city discovery by country
+- Built-in major city directory as the fallback discovery layer when GeoDB is unavailable
+- Google Places for destination imagery and nearby points of interest
+- Unsplash as a fallback image source when Google Places is not configured
+- Curated local fallback data for seeded destinations
 
-To learn more about Next.js, take a look at the following resources:
+## Environment Setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create `.env.local` from `.env.example`:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+copy .env.example .env.local
+```
 
-## Deploy on Vercel
+Then add your provider keys:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+GEODB_API_KEY=your_key_here
+GOOGLE_PLACES_API_KEY=your_key_here
+UNSPLASH_ACCESS_KEY=your_key_here
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Optional defaults already exist in `.env.example` for the endpoint and host.
+
+Without a GeoDB key, supported countries still render a built-in set of major cities, and Google Places is used to enrich those destinations with photos and nearby recommendations when configured.
+
+Without a Google Places key, the app falls back to Unsplash for photos and to lightweight generated recommendation cards for live destinations.
+
+Google Places setup:
+
+1. Create or select a Google Cloud project.
+2. Enable Places API (New).
+3. Attach billing to the project.
+4. Create an API key restricted to Places API and your server environment.
+5. Add the key as `GOOGLE_PLACES_API_KEY` in `.env.local`.
+
+## Validation
+
+Run lint checks with:
+
+```bash
+npm run lint
+```
+
+## Notes
+
+- `.env.local` is gitignored.
+- Design reference exports live in `references/` and are not shipped.
+- Runtime assets live in `public/`.

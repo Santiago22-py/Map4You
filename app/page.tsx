@@ -42,14 +42,15 @@ export default function Home() {
     <main className="flex-1 overflow-x-clip pb-10 pt-6 md:pb-16 md:pt-10">
       <div className="flex flex-col gap-8 md:gap-12">
         <header className="page-shell flex items-center justify-between gap-4 px-1">
-          <Link href="/" className="motion-fade-up shrink-0" style={enterDelay("40ms")}>
+          <Link href="/" className="motion-fade-up shrink-0 w-[132px] md:w-[168px]" style={enterDelay("40ms")}>
             <Image
               src="/icons/logo.svg"
               alt="Map 4 You"
               width={170}
               height={48}
-              priority
-              className="h-auto w-[132px] md:w-[168px]"
+              loading="eager"
+              className="w-full"
+              style={{ height: "auto" }}
             />
           </Link>
 

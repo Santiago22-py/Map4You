@@ -245,6 +245,22 @@ input {
   }
 }
 
+@keyframes poi-dialog-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.poi-dialog-enter {
+  animation: poi-dialog-enter 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 @media (min-width: 768px) {
   .page-shell {
     width: min(1180px, calc(100% - 3rem));
@@ -261,11 +277,13 @@ input {
   .landing-search-shell,
   .landing-chip,
   .motion-fade-up,
+  .poi-dialog-enter,
   .motion-search-settle,
   .motion-chat-in {
     animation: none !important;
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;
-  }
+  .motion-chat-in,
+  .poi-dialog-enter {
 }

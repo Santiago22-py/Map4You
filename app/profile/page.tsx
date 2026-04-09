@@ -4,6 +4,7 @@ import { ProfileView } from "@/components/profile-view";
 import { PublicHeader } from "@/components/public-header";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { getUserTravelAlbums } from "@/lib/travel-albums-server";
+import { ensureUserProfile } from "@/lib/user-profiles-server";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -12,8 +13,7 @@ export default async function ProfilePage() {
     redirect("/auth");
   }
 
-  const displayName = String(user.user_metadata.full_name ?? user.email?.split("@")[0] ?? "Viajero");
-  const username = user.email ? `@${user.email.split("@")[0]}` : "@map4you";
+  const profile = await ensureUserProfile(user);
   const albums = await getUserTravelAlbums(user.id);
 
   return (
@@ -21,7 +21,7 @@ export default async function ProfilePage() {
       <PublicHeader />
 
       <div className="page-shell pt-10 md:pt-12">
-        <ProfileView displayName={displayName} initialAlbums={albums} username={username} />
+        <ProfileView albumBasePath="/profile/albums" initialAlbums={albums} profile={profile} />
       </div>
     </main>
   );

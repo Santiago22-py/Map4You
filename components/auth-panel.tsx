@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { siteUrl } from "@/lib/supabase/config";
+import { getBrowserSiteUrl } from "@/lib/supabase/config";
 
 type AuthPanelProps = {
   enabled: boolean;
@@ -37,6 +37,11 @@ export function AuthPanel({ enabled }: AuthPanelProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loadingMode, setLoadingMode] = useState<"signin" | "signup" | "google" | null>(null);
+
+  function getAuthRedirectUrl() {
+    const redirectBase = getBrowserSiteUrl();
+    return redirectBase ? `${redirectBase}/auth/callback?next=/profile` : "/auth/callback?next=/profile";
+  }
 
   async function handleEmailSignIn(formData: FormData) {
     if (!enabled) {
@@ -93,6 +98,7 @@ export function AuthPanel({ enabled }: AuthPanelProps) {
         password,
         options: {
           data: { full_name: fullName },
+          emailRedirectTo: getAuthRedirectUrl(),
         },
       });
 
@@ -129,11 +135,10 @@ export function AuthPanel({ enabled }: AuthPanelProps) {
         throw new Error("Supabase no está configurado.");
       }
 
-      const redirectBase = typeof window !== "undefined" ? window.location.origin : siteUrl;
       const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${redirectBase}/auth/callback?next=/profile`,
+          redirectTo: getAuthRedirectUrl(),
           queryParams: { prompt: "select_account" },
         },
       });

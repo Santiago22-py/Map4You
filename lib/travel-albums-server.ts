@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import { getTravelAlbumPublicUrl, type TravelAlbum, type TravelAlbumPhoto } from "@/lib/travel-albums";
 
 type TravelAlbumRow = {
@@ -15,7 +15,19 @@ type TravelAlbumPhotoRow = {
   storage_path: string;
 };
 
-function mapTravelAlbums(albums: TravelAlbumRow[], photos: TravelAlbumPhotoRow[], supabase: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>>) {
+type AlbumStorageClient = {
+  storage: {
+    from(bucket: string): {
+      getPublicUrl(path: string): {
+        data: {
+          publicUrl: string;
+        };
+      };
+    };
+  };
+};
+
+function mapTravelAlbums(albums: TravelAlbumRow[], photos: TravelAlbumPhotoRow[], supabase: AlbumStorageClient) {
   const photosByAlbum = new Map<string, TravelAlbumPhoto[]>();
 
   for (const photo of photos) {
@@ -46,7 +58,7 @@ function mapTravelAlbums(albums: TravelAlbumRow[], photos: TravelAlbumPhotoRow[]
   });
 }
 
-export async function getUserTravelAlbums(userId: string): Promise<TravelAlbum[]> {
+async function getTravelAlbumsForUser(userId: string): Promise<TravelAlbum[]> {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -75,8 +87,72 @@ export async function getUserTravelAlbums(userId: string): Promise<TravelAlbum[]
   return mapTravelAlbums(albumRows, (photos as TravelAlbumPhotoRow[] | null) ?? [], supabase);
 }
 
-export async function getUserTravelAlbum(userId: string, albumId: string): Promise<TravelAlbum | null> {
+async function getTravelAlbumForUser(userId: string, albumId: string): Promise<TravelAlbum | null> {
   const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const { data: album, error: albumError } = await supabase
+    .from("travel_albums")
+    .select("id, title, cover_path, created_at")
+    .eq("user_id", userId)
+    .eq("id", albumId)
+    .maybeSingle();
+
+  if (albumError || !album) {
+    return null;
+  }
+
+  const { data: photos } = await supabase
+    .from("travel_album_photos")
+    .select("id, album_id, storage_path, sort_order")
+    .eq("album_id", albumId)
+    .order("sort_order", { ascending: true });
+
+  return mapTravelAlbums([album as TravelAlbumRow], (photos as TravelAlbumPhotoRow[] | null) ?? [], supabase)[0] ?? null;
+}
+
+export async function getUserTravelAlbums(userId: string): Promise<TravelAlbum[]> {
+  return await getTravelAlbumsForUser(userId);
+}
+
+export async function getUserTravelAlbum(userId: string, albumId: string): Promise<TravelAlbum | null> {
+  return await getTravelAlbumForUser(userId, albumId);
+}
+
+export async function getPublicTravelAlbumsByUserId(userId: string): Promise<TravelAlbum[]> {
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const { data: albums, error: albumsError } = await supabase
+    .from("travel_albums")
+    .select("id, title, cover_path, created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (albumsError || !albums?.length) {
+    return [];
+  }
+
+  const albumRows = albums as TravelAlbumRow[];
+  const albumIds = albumRows.map((album) => album.id);
+
+  const { data: photos } = await supabase
+    .from("travel_album_photos")
+    .select("id, album_id, storage_path, sort_order")
+    .in("album_id", albumIds)
+    .order("sort_order", { ascending: true });
+
+  return mapTravelAlbums(albumRows, (photos as TravelAlbumPhotoRow[] | null) ?? [], supabase);
+}
+
+export async function getPublicTravelAlbum(userId: string, albumId: string): Promise<TravelAlbum | null> {
+  const supabase = createSupabaseAdminClient();
 
   if (!supabase) {
     return null;

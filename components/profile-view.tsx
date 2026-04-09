@@ -8,6 +8,7 @@ import { startTransition, useEffect, useId, useMemo, useRef, useState, type Chan
 import { SignOutButton } from "@/components/sign-out-button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getTravelAlbumPublicUrl, getTravelAlbumStoragePath, travelAlbumBucket, type TravelAlbum, type TravelAlbumPhoto } from "@/lib/travel-albums";
+import { getProfileImagePublicUrl, getProfileImageStoragePath, profileImageBucket, type UserProfile } from "@/lib/user-profiles";
 
 const placeholderPhotos = [
   "/images/profile/paris-placeholder.jpg",
@@ -16,9 +17,10 @@ const placeholderPhotos = [
 ];
 
 type ProfileViewProps = {
-  displayName: string;
+  albumBasePath: string;
   initialAlbums: TravelAlbum[];
-  username: string;
+  profile: UserProfile;
+  readOnly?: boolean;
 };
 
 type PreviewFile = {
@@ -34,46 +36,46 @@ type FeaturedPhoto = {
   url: string;
 };
 
-function shuffleItems<T>(items: T[]) {
-  const nextItems = [...items];
+function getStableWeight(value: string) {
+  let hash = 0;
 
-  for (let index = nextItems.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
-    const currentValue = nextItems[index];
-
-    nextItems[index] = nextItems[randomIndex];
-    nextItems[randomIndex] = currentValue;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
   }
 
-  return nextItems;
+  return hash;
 }
 
 function getFeaturedPhotos(albums: TravelAlbum[]) {
   const featuredPhotos: FeaturedPhoto[] = [];
-  const shuffledAlbums = shuffleItems(albums.filter((album) => album.photos.length));
+  const orderedAlbums = [...albums]
+    .filter((album) => album.photos.length)
+    .sort((left, right) => getStableWeight(left.id) - getStableWeight(right.id));
   const remainingPhotosByAlbum = new Map<string, FeaturedPhoto[]>();
 
-  for (const album of shuffledAlbums) {
-    const shuffledPhotos = shuffleItems(album.photos).map((photo) => ({
+  for (const album of orderedAlbums) {
+    const orderedPhotos = [...album.photos]
+      .sort((left, right) => getStableWeight(left.id) - getStableWeight(right.id))
+      .map((photo) => ({
       albumId: album.id,
       albumTitle: album.title,
       id: photo.id,
       url: photo.url,
     }));
 
-    if (!shuffledPhotos.length) {
+    if (!orderedPhotos.length) {
       continue;
     }
 
-    featuredPhotos.push(shuffledPhotos[0]);
-    remainingPhotosByAlbum.set(album.id, shuffledPhotos.slice(1));
+    featuredPhotos.push(orderedPhotos[0]);
+    remainingPhotosByAlbum.set(album.id, orderedPhotos.slice(1));
 
     if (featuredPhotos.length === 8) {
       return featuredPhotos;
     }
   }
 
-  for (const album of shuffledAlbums) {
+  for (const album of orderedAlbums) {
     const remainingPhotos = remainingPhotosByAlbum.get(album.id) ?? [];
 
     for (const photo of remainingPhotos) {
@@ -215,15 +217,26 @@ function CreateAlbumModal({
   );
 }
 
-export function ProfileView({ displayName, initialAlbums, username }: ProfileViewProps) {
+function getAlbumHref(basePath: string, albumId: string) {
+  return `${basePath}/${albumId}`;
+}
+
+export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = false }: ProfileViewProps) {
   const router = useRouter();
   const [albums, setAlbums] = useState(initialAlbums);
+  const [currentProfile, setCurrentProfile] = useState(profile);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editingBio, setEditingBio] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [files, setFiles] = useState<PreviewFile[]>([]);
+  const [bioDraft, setBioDraft] = useState(profile.bio ?? "");
+  const [savingBio, setSavingBio] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   const featuredPhotos = useMemo(() => getFeaturedPhotos(albums), [albums]);
+  const visibleAlbums = readOnly ? albums.slice(0, 6) : albums.slice(0, 5);
 
   useEffect(() => {
     return () => {
@@ -391,19 +404,151 @@ export function ProfileView({ displayName, initialAlbums, username }: ProfileVie
     }
   }
 
+  async function handleSaveBio() {
+    const supabase = createSupabaseBrowserClient();
+
+    if (!supabase) {
+      setFormError("Faltan las credenciales públicas de Supabase.");
+      return;
+    }
+
+    setSavingBio(true);
+    setFormError(null);
+
+    const trimmedBio = bioDraft.trim();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ bio: trimmedBio || null })
+      .eq("user_id", currentProfile.userId);
+
+    if (error) {
+      setSavingBio(false);
+      setFormError(error.message);
+      return;
+    }
+
+    setCurrentProfile((current) => ({ ...current, bio: trimmedBio || null }));
+    setEditingBio(false);
+    setSavingBio(false);
+
+    startTransition(() => {
+      router.refresh();
+    });
+  }
+
+  async function handleAvatarSelected(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    const supabase = createSupabaseBrowserClient();
+
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!supabase) {
+      setFormError("Faltan las credenciales públicas de Supabase.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setFormError(null);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user || user.id !== currentProfile.userId) {
+      setUploadingAvatar(false);
+      setFormError("Tu sesión expiró. Inicia sesión otra vez.");
+      return;
+    }
+
+    const nextPath = getProfileImageStoragePath(user.id, file.name);
+
+    try {
+      const { error: uploadError } = await supabase.storage.from(profileImageBucket).upload(nextPath, file, {
+        contentType: file.type || undefined,
+        upsert: false,
+      });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_path: nextPath })
+        .eq("user_id", user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      if (currentProfile.avatarPath) {
+        await supabase.storage.from(profileImageBucket).remove([currentProfile.avatarPath]);
+      }
+
+      setCurrentProfile((current) => ({
+        ...current,
+        avatarPath: nextPath,
+        avatarUrl: getProfileImagePublicUrl(supabase, nextPath),
+      }));
+
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (avatarError) {
+      await supabase.storage.from(profileImageBucket).remove([nextPath]);
+      setFormError(getErrorMessage(avatarError));
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-[28rem_minmax(0,1fr)]">
         <div className="space-y-6">
           <section className="rounded-[1.8rem] bg-white p-8 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
             <div className="flex items-start gap-6">
-              <div className="flex h-40 w-40 items-center justify-center rounded-full bg-[#e8ccb4] text-5xl font-semibold text-brand-navy">
-                {displayName.charAt(0).toUpperCase()}
+              <div className="relative">
+                {currentProfile.avatarUrl ? (
+                  <div className="relative h-40 w-40 overflow-hidden rounded-full bg-[#e8ccb4]">
+                    <Image src={currentProfile.avatarUrl} alt={currentProfile.displayName} fill sizes="10rem" className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="flex h-40 w-40 items-center justify-center rounded-full bg-[#e8ccb4] text-5xl font-semibold text-brand-navy">
+                    {currentProfile.displayName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+
+                {!readOnly ? (
+                  <>
+                    <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelected} />
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      aria-label="Cambiar foto de perfil"
+                      disabled={uploadingAvatar}
+                      className="absolute bottom-2 right-2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-brand-navy text-white shadow-[0_10px_20px_rgba(10,48,120,0.2)] transition hover:-translate-y-0.5 disabled:opacity-60"
+                    >
+                      <Image src="/icons/add.svg" alt="" width={18} height={18} className="h-5 w-5 invert brightness-0 saturate-0" />
+                    </button>
+                  </>
+                ) : null}
               </div>
 
               <div className="pt-4">
-                <h1 className="font-display text-[2.6rem] font-semibold uppercase leading-[0.95] tracking-[-0.05em] text-brand-navy">{displayName}</h1>
-                <p className="mt-2 text-[2rem] font-semibold tracking-[-0.04em] text-brand-burnt">{username}</p>
+                <h1 className="font-display text-[2.6rem] font-semibold uppercase leading-[0.95] tracking-[-0.05em] text-brand-navy">{currentProfile.displayName}</h1>
+                {readOnly ? (
+                  <p className="mt-2 text-[2rem] font-semibold tracking-[-0.04em] text-brand-burnt">@{currentProfile.username}</p>
+                ) : (
+                  <Link href={`/u/${currentProfile.username}`} className="mt-2 block text-[2rem] font-semibold tracking-[-0.04em] text-brand-burnt transition hover:text-brand-navy">
+                    @{currentProfile.username}
+                  </Link>
+                )}
                 <p className="mt-4 flex items-center gap-2 text-base font-semibold uppercase tracking-[0.03em] text-black/80">
                   <Image src="/icons/social-blue.svg" alt="Google" width={30} height={30} />
                   0 amigos
@@ -412,32 +557,92 @@ export function ProfileView({ displayName, initialAlbums, username }: ProfileVie
             </div>
 
             <p className="mt-10 text-base font-semibold uppercase tracking-[0.02em] text-black/85">0 países 0 ciudades visitadas</p>
-            <p className="mt-4 max-w-[24rem] text-[1.08rem] leading-8 text-black/80">
-              Tu perfil ya está listo. Ahora ya puedes crear álbumes de viaje y subir tus primeras fotos directamente desde tu cuenta.
-            </p>
 
-            <div className="mt-8">
-              <SignOutButton />
+            <div className="mt-6 rounded-[1.4rem] bg-[#fbf7f3] p-5 ring-1 ring-black/6">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="font-display text-[1.5rem] font-semibold tracking-[-0.04em] text-brand-burnt">Sobre mí</h2>
+                {!readOnly && !editingBio ? (
+                  <button
+                    type="button"
+                    onClick={() => setEditingBio(true)}
+                    aria-label="Editar biografía"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-brand-navy/12 bg-white text-brand-navy transition hover:-translate-y-0.5 hover:bg-brand-navy/5"
+                  >
+                    <Image src="/icons/pen.svg" alt="" width={18} height={18} className="h-4.5 w-4.5" />
+                  </button>
+                ) : null}
+              </div>
+
+              {editingBio ? (
+                <div className="mt-4 space-y-4">
+                  <textarea
+                    value={bioDraft}
+                    onChange={(event) => setBioDraft(event.target.value)}
+                    maxLength={280}
+                    rows={5}
+                    placeholder="Cuéntale a la gente algo sobre ti y tu forma de viajar."
+                    className="w-full resize-none rounded-[1rem] border border-black/12 bg-white px-4 py-3 text-base leading-7 text-brand-ink outline-none transition focus:border-brand-navy/35"
+                  />
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={handleSaveBio}
+                      disabled={savingBio}
+                      className="rounded-full bg-brand-navy px-5 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-brand-blue disabled:opacity-60"
+                    >
+                      {savingBio ? "Guardando..." : "Guardar"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBioDraft(currentProfile.bio ?? "");
+                        setEditingBio(false);
+                        setFormError(null);
+                      }}
+                      disabled={savingBio}
+                      className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-black/70 transition hover:bg-black/5 disabled:opacity-60"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-4 max-w-[24rem] text-[1.08rem] leading-8 text-black/80">
+                  {currentProfile.bio?.trim()
+                    ? currentProfile.bio
+                    : "Tu perfil ya está listo. Ahora ya puedes crear álbumes de viaje y subir tus primeras fotos directamente desde tu cuenta."}
+                </p>
+              )}
             </div>
+
+            {formError ? <p className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{formError}</p> : null}
+
+            {!readOnly ? (
+              <div className="mt-8">
+                <SignOutButton />
+              </div>
+            ) : null}
           </section>
 
           <section className="rounded-[1.8rem] bg-white p-8 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
             <h2 className="font-display text-[2rem] font-semibold tracking-[-0.05em] text-brand-burnt">Álbumes de viaje</h2>
 
             <div className="mt-6 grid grid-cols-3 gap-4">
-              <button
-                type="button"
-                onClick={() => setCreateOpen(true)}
-                className="flex aspect-square items-center justify-center rounded-[1.2rem] border border-dashed border-brand-navy/30 bg-[#fbf7f3] text-5xl text-brand-navy/80 transition hover:-translate-y-0.5 hover:bg-[#f5ece3]"
-                aria-label="Crear álbum"
-              >
-                +
-              </button>
+              {!readOnly ? (
+                <button
+                  type="button"
+                  onClick={() => setCreateOpen(true)}
+                  className="flex aspect-square items-center justify-center rounded-[1.2rem] border border-dashed border-brand-navy/30 bg-[#fbf7f3] text-5xl text-brand-navy/80 transition hover:-translate-y-0.5 hover:bg-[#f5ece3]"
+                  aria-label="Crear álbum"
+                >
+                  +
+                </button>
+              ) : null}
 
-              {albums.slice(0, 5).map((album) => (
+              {visibleAlbums.map((album) => (
                 <Link
                   key={album.id}
-                  href={`/profile/albums/${album.id}`}
+                  href={getAlbumHref(albumBasePath, album.id)}
                   className="text-left"
                 >
                   {album.coverUrl ? (
@@ -456,7 +661,7 @@ export function ProfileView({ displayName, initialAlbums, username }: ProfileVie
               ))}
             </div>
 
-            {!albums.length ? <p className="mt-4 text-sm text-black/60">Todavía no tienes álbumes. Crea uno y usa la primera foto como portada.</p> : null}
+            {!albums.length ? <p className="mt-4 text-sm text-black/60">{readOnly ? "Todavía no ha publicado álbumes." : "Todavía no tienes álbumes. Crea uno y usa la primera foto como portada."}</p> : null}
           </section>
         </div>
 
@@ -470,7 +675,7 @@ export function ProfileView({ displayName, initialAlbums, username }: ProfileVie
 
               <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 {featuredPhotos.map((photo) => (
-                  <Link key={photo.id} href={`/profile/albums/${photo.albumId}`} className="landing-photo relative overflow-hidden rounded-[1.2rem] text-left">
+                  <Link key={photo.id} href={getAlbumHref(albumBasePath, photo.albumId)} className="landing-photo relative overflow-hidden rounded-[1.2rem] text-left">
                     <div className="aspect-square" />
                     <Image src={photo.url} alt={photo.albumTitle} fill sizes="(min-width: 1280px) 15rem, (min-width: 640px) 40vw, 90vw" className="object-cover" />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-4 py-4 text-white">
@@ -484,19 +689,23 @@ export function ProfileView({ displayName, initialAlbums, username }: ProfileVie
             <>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-[2.8rem] font-semibold uppercase tracking-[-0.05em] text-brand-burnt">Crea tu primer álbum</h2>
+                  <h2 className="font-display text-[2.8rem] font-semibold uppercase tracking-[-0.05em] text-brand-burnt">{readOnly ? "Todavía no hay fotos destacadas" : "Crea tu primer álbum"}</h2>
                   <p className="mt-3 max-w-[37rem] text-[1.05rem] leading-8 text-black/75">
-                    Sigue el flujo del mockup: nombra el álbum, elige una o varias fotos y guarda. Luego podrás abrirlo en grande y seguir agregando recuerdos de tu viaje.
+                    {readOnly
+                      ? "En cuanto haya álbumes con fotos, este espacio mostrará una selección destacada del perfil público."
+                      : "Sigue el flujo del mockup: nombra el álbum, elige una o varias fotos y guarda. Luego podrás abrirlo en grande y seguir agregando recuerdos de tu viaje."}
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setCreateOpen(true)}
-                  className="rounded-full border border-brand-burnt/15 bg-brand-burnt px-5 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:-translate-y-0.5 hover:bg-[#b83b00]"
-                >
-                  Crear álbum
-                </button>
+                {!readOnly ? (
+                  <button
+                    type="button"
+                    onClick={() => setCreateOpen(true)}
+                    className="rounded-full border border-brand-burnt/15 bg-brand-burnt px-5 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:-translate-y-0.5 hover:bg-[#b83b00]"
+                  >
+                    Crear álbum
+                  </button>
+                ) : null}
               </div>
 
               <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -511,7 +720,7 @@ export function ProfileView({ displayName, initialAlbums, username }: ProfileVie
         </section>
       </div>
 
-      {createOpen ? (
+      {createOpen && !readOnly ? (
         <CreateAlbumModal busy={creating} error={formError} files={files} onClose={closeCreateModal} onCreate={handleCreateAlbum} onFilesSelected={handleFilesSelected} />
       ) : null}
 

@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-import { hasSupabaseCredentials, supabaseAnonKey, supabaseUrl } from "@/lib/supabase/config";
+import { hasSupabaseCredentials, hasSupabaseServiceRoleCredentials, supabaseAnonKey, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase/config";
 
 export async function createSupabaseServerClient() {
   if (!hasSupabaseCredentials()) {
@@ -24,6 +25,19 @@ export async function createSupabaseServerClient() {
           // Route handlers and middleware persist auth cookies; server components can still read them.
         }
       },
+    },
+  });
+}
+
+export function createSupabaseAdminClient() {
+  if (!hasSupabaseServiceRoleCredentials()) {
+    return null;
+  }
+
+  return createClient(supabaseUrl!, supabaseServiceRoleKey!, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
   });
 }

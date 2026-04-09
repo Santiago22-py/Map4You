@@ -10,6 +10,9 @@ import { getTravelAlbumPublicUrl, getTravelAlbumStoragePath, travelAlbumBucket, 
 
 type AlbumDetailViewProps = {
   album: TravelAlbum;
+  backHref?: string;
+  backLabel?: string;
+  readOnly?: boolean;
 };
 
 function getErrorMessage(error: unknown) {
@@ -30,7 +33,7 @@ async function removeUploadedFiles(paths: string[]) {
   await supabase.storage.from(travelAlbumBucket).remove(paths);
 }
 
-export function AlbumDetailView({ album }: AlbumDetailViewProps) {
+export function AlbumDetailView({ album, backHref = "/profile", backLabel = "Volver al perfil", readOnly = false }: AlbumDetailViewProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [currentAlbum, setCurrentAlbum] = useState(album);
@@ -291,12 +294,12 @@ export function AlbumDetailView({ album }: AlbumDetailViewProps) {
         <section className="rounded-[1.8rem] bg-white p-8 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-4">
-              <Link href="/profile" className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-brand-navy/70 transition hover:text-brand-navy">
+              <Link href={backHref} className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-brand-navy/70 transition hover:text-brand-navy">
                 <span aria-hidden="true">←</span>
-                Volver al perfil
+                {backLabel}
               </Link>
 
-              {editingTitle ? (
+              {!readOnly && editingTitle ? (
                 <div className="flex flex-wrap items-center gap-3">
                   <input
                     value={titleDraft}
@@ -328,41 +331,45 @@ export function AlbumDetailView({ album }: AlbumDetailViewProps) {
               ) : (
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="font-display text-[2.6rem] font-semibold uppercase tracking-[-0.05em] text-brand-burnt sm:text-[3.2rem]">{currentAlbum.title}</h1>
-                  <button
-                    type="button"
-                    onClick={() => setEditingTitle(true)}
-                    aria-label="Editar nombre del álbum"
-                    className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-brand-navy/12 bg-brand-navy/5 text-brand-navy transition hover:-translate-y-0.5 hover:bg-brand-navy/8"
-                  >
-                    <Image src="/icons/pen.svg" alt="" width={22} height={22} className="h-5 w-5" />
-                  </button>
+                  {!readOnly ? (
+                    <button
+                      type="button"
+                      onClick={() => setEditingTitle(true)}
+                      aria-label="Editar nombre del álbum"
+                      className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-brand-navy/12 bg-brand-navy/5 text-brand-navy transition hover:-translate-y-0.5 hover:bg-brand-navy/8"
+                    >
+                      <Image src="/icons/pen.svg" alt="" width={22} height={22} className="h-5 w-5" />
+                    </button>
+                  ) : null}
                 </div>
               )}
 
               <p className="text-sm font-semibold uppercase tracking-[0.08em] text-black/55">{currentAlbum.photoCount === 1 ? "1 foto" : `${currentAlbum.photoCount} fotos`}</p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
-              <button
-                type="button"
-                disabled={uploadingPhotos || deletingAlbum}
-                onClick={() => fileInputRef.current?.click()}
-                aria-label="Agregar fotos"
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(180deg,#3266d0,#244a9a)] text-white shadow-[0_16px_30px_rgba(36,74,154,0.28)] transition hover:-translate-y-0.5 disabled:opacity-60"
-              >
-                <Image src="/icons/add.svg" alt="" width={22} height={22} className="h-5 w-5 invert brightness-0 saturate-0" />
-              </button>
-              <button
-                type="button"
-                disabled={deletingAlbum || uploadingPhotos || savingTitle}
-                onClick={handleDeleteAlbum}
-                aria-label="Eliminar álbum"
-                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-red-50 text-brand-burnt shadow-[0_10px_20px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:bg-red-100 disabled:opacity-60"
-              >
-                <Image src="/icons/trash.svg" alt="" width={20} height={20} className="h-5 w-5" />
-              </button>
-            </div>
+            {!readOnly ? (
+              <div className="flex flex-wrap gap-3">
+                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
+                <button
+                  type="button"
+                  disabled={uploadingPhotos || deletingAlbum}
+                  onClick={() => fileInputRef.current?.click()}
+                  aria-label="Agregar fotos"
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(180deg,#3266d0,#244a9a)] text-white shadow-[0_16px_30px_rgba(36,74,154,0.28)] transition hover:-translate-y-0.5 disabled:opacity-60"
+                >
+                  <Image src="/icons/add.svg" alt="" width={22} height={22} className="h-5 w-5 invert brightness-0 saturate-0" />
+                </button>
+                <button
+                  type="button"
+                  disabled={deletingAlbum || uploadingPhotos || savingTitle}
+                  onClick={handleDeleteAlbum}
+                  aria-label="Eliminar álbum"
+                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-red-50 text-brand-burnt shadow-[0_10px_20px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:bg-red-100 disabled:opacity-60"
+                >
+                  <Image src="/icons/trash.svg" alt="" width={20} height={20} className="h-5 w-5" />
+                </button>
+              </div>
+            ) : null}
           </div>
 
           {error ? <p className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
@@ -374,15 +381,17 @@ export function AlbumDetailView({ album }: AlbumDetailViewProps) {
                   <div className="aspect-square" />
                   <Image src={photo.url} alt={currentAlbum.title} fill sizes="(min-width: 1280px) 21rem, (min-width: 640px) 45vw, 90vw" className="object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
-                  <button
-                    type="button"
-                    disabled={deletingPhotoId === photo.id}
-                    onClick={() => handleDeletePhoto(photo)}
-                    aria-label="Eliminar foto"
-                    className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/92 text-brand-burnt shadow-[0_10px_20px_rgba(0,0,0,0.12)] transition hover:bg-white disabled:opacity-60"
-                  >
-                    <Image src="/icons/trash.svg" alt="" width={20} height={20} className="h-5 w-5" />
-                  </button>
+                  {!readOnly ? (
+                    <button
+                      type="button"
+                      disabled={deletingPhotoId === photo.id}
+                      onClick={() => handleDeletePhoto(photo)}
+                      aria-label="Eliminar foto"
+                      className="absolute right-3 top-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/92 text-brand-burnt shadow-[0_10px_20px_rgba(0,0,0,0.12)] transition hover:bg-white disabled:opacity-60"
+                    >
+                      <Image src="/icons/trash.svg" alt="" width={20} height={20} className="h-5 w-5" />
+                    </button>
+                  ) : null}
                 </article>
               ))}
             </div>

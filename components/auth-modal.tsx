@@ -64,8 +64,8 @@ export function AuthModal({ closeHref, disabledReason, enabled, error, nextPath,
   }
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#c98a60]/28 px-4 py-8 backdrop-blur-[6px]" onClick={handleClose}>
-      <section className="relative w-full max-w-[68rem] rounded-[1.9rem] bg-white px-7 py-8 shadow-[0_18px_42px_rgba(0,0,0,0.16)] ring-1 ring-black/8 sm:px-10 sm:py-10 lg:px-14 lg:py-12" aria-modal="true" role="dialog" onClick={(event) => event.stopPropagation()}>
+    <div className="fixed inset-0 z-[80] overflow-y-auto bg-[#c98a60]/28 px-4 py-4 backdrop-blur-[6px] sm:flex sm:items-center sm:justify-center sm:py-8" onClick={handleClose}>
+      <section className="relative mx-auto w-full max-w-[68rem] overflow-y-auto rounded-[1.9rem] bg-white px-7 py-8 shadow-[0_18px_42px_rgba(0,0,0,0.16)] ring-1 ring-black/8 max-sm:min-h-[calc(100dvh-2rem)] max-sm:max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] sm:px-10 sm:py-10 lg:px-14 lg:py-12" aria-modal="true" role="dialog" onClick={(event) => event.stopPropagation()}>
         <button type="button" aria-label="Cerrar" onClick={handleClose} className="absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-black transition hover:bg-black/5">
           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 6l12 12" />

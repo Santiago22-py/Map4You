@@ -58,7 +58,7 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
         ))}
       </div>
 
-      <div className="page-shell relative z-10 flex min-h-[calc(100vh-11rem)] items-center justify-center py-12">
+      <div className="page-shell relative z-10 flex min-h-[calc(100dvh-11rem)] items-center justify-center py-12">
         <AuthModal open enabled={authReady} error={resolvedSearchParams.error} notice={resolvedSearchParams.notice} closeHref="/" disabledReason={authWarning} nextPath={nextPath} />
       </div>
 

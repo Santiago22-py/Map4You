@@ -39,7 +39,7 @@ export default async function Home() {
           style={enterDelay("210ms")}
         />
 
-        <section className="page-shell grid min-h-[calc(100vh-13rem)] items-center gap-12 pt-4 md:gap-14 lg:grid-cols-[minmax(540px,1fr)_minmax(420px,0.9fr)] lg:pt-10">
+        <section className="page-shell grid min-h-[calc(100dvh-13rem)] items-center gap-12 pt-4 md:gap-14 lg:grid-cols-[minmax(540px,1fr)_minmax(420px,0.9fr)] lg:pt-10">
           <div className="relative order-2 min-h-[25rem] sm:min-h-[33rem] lg:order-1 lg:min-h-[42rem]">
             <div
               className="landing-photo motion-fade-up absolute left-[6%] top-[26%] w-[34%] min-w-[9rem] max-w-[15rem] md:left-[2%] md:top-[31%] md:w-[32%] lg:left-[1%] lg:top-[36%] lg:w-[36%]"

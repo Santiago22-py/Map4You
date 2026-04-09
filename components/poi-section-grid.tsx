@@ -13,7 +13,7 @@ const detailRows = [
   { icon: "/icons/pinpoint-blue.svg", key: "location", label: "Ubicación" },
   { icon: "/icons/fire-blue.svg", key: "popularity", label: "Popularidad" },
   { icon: "/icons/piggy-blue.svg", key: "priceRange", label: "Rango de precios" },
-  { icon: "/icons/calendar-blue.svg", key: "dateHint", label: "Fechas" },
+  { icon: "/icons/calendar-black.svg", key: "dateHint", label: "Fechas" },
 ] as const satisfies Array<{
   icon: string;
   key: keyof Pick<RecommendationCard, "location" | "popularity" | "priceRange" | "dateHint">;

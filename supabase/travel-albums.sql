@@ -34,9 +34,24 @@ create table if not exists public.visited_countries (
 	primary key (user_id, country_code)
 );
 
+create table if not exists public.user_trips (
+	id uuid primary key default gen_random_uuid(),
+	user_id uuid not null references auth.users (id) on delete cascade,
+	destination text not null check (char_length(trim(destination)) between 1 and 120),
+	start_date date not null,
+	end_date date not null,
+	places_to_sleep text[] not null default '{}',
+	places_to_eat text[] not null default '{}',
+	places_to_visit text[] not null default '{}',
+	created_at timestamptz not null default timezone('utc', now()),
+	updated_at timestamptz not null default timezone('utc', now()),
+	check (end_date >= start_date)
+);
+
 create index if not exists travel_albums_user_id_created_at_idx on public.travel_albums (user_id, created_at desc);
 create index if not exists travel_album_photos_album_id_sort_order_idx on public.travel_album_photos (album_id, sort_order);
 create index if not exists visited_countries_user_id_created_at_idx on public.visited_countries (user_id, created_at desc);
+create index if not exists user_trips_user_id_start_date_idx on public.user_trips (user_id, start_date asc);
 
 create or replace function public.set_travel_album_updated_at()
 returns trigger
@@ -49,6 +64,16 @@ end;
 $$;
 
 create or replace function public.set_profile_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+	new.updated_at := timezone('utc', now());
+	return new;
+end;
+$$;
+
+create or replace function public.set_user_trip_updated_at()
 returns trigger
 language plpgsql
 as $$
@@ -72,10 +97,18 @@ before update on public.travel_albums
 for each row
 execute function public.set_travel_album_updated_at();
 
+drop trigger if exists user_trips_set_updated_at on public.user_trips;
+
+create trigger user_trips_set_updated_at
+before update on public.user_trips
+for each row
+execute function public.set_user_trip_updated_at();
+
 alter table public.profiles enable row level security;
 alter table public.travel_albums enable row level security;
 alter table public.travel_album_photos enable row level security;
 alter table public.visited_countries enable row level security;
+alter table public.user_trips enable row level security;
 
 drop policy if exists "Users can read their own profile" on public.profiles;
 create policy "Users can read their own profile"
@@ -196,6 +229,31 @@ with check (auth.uid() = user_id);
 drop policy if exists "Users can delete their visited countries" on public.visited_countries;
 create policy "Users can delete their visited countries"
 on public.visited_countries
+for delete
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can read their trips" on public.user_trips;
+create policy "Users can read their trips"
+on public.user_trips
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can create their trips" on public.user_trips;
+create policy "Users can create their trips"
+on public.user_trips
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their trips" on public.user_trips;
+create policy "Users can update their trips"
+on public.user_trips
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their trips" on public.user_trips;
+create policy "Users can delete their trips"
+on public.user_trips
 for delete
 using (auth.uid() = user_id);
 

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ProfileView } from "@/components/profile-view";
 import { PublicHeader } from "@/components/public-header";
 import { getPublicTravelAlbumsByUserId } from "@/lib/travel-albums-server";
+import { getPublicVisitedCityCountByUserId } from "@/lib/trips-server";
 import { getProfileByUsername } from "@/lib/user-profiles-server";
 import { getPublicVisitedCountriesByUserId } from "@/lib/visited-countries-server";
 
@@ -20,14 +21,14 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
     redirect("/");
   }
 
-  const [albums, visitedCountries] = await Promise.all([getPublicTravelAlbumsByUserId(profile.userId), getPublicVisitedCountriesByUserId(profile.userId)]);
+  const [albums, visitedCitiesCount, visitedCountries] = await Promise.all([getPublicTravelAlbumsByUserId(profile.userId), getPublicVisitedCityCountByUserId(profile.userId), getPublicVisitedCountriesByUserId(profile.userId)]);
 
   return (
     <main className="flex-1 bg-[#f7efe8] pb-10 md:pb-14">
       <PublicHeader />
 
       <div className="page-shell pt-10 md:pt-12">
-        <ProfileView albumBasePath={`/u/${profile.username}/albums`} initialAlbums={albums} profile={profile} readOnly visitedCountries={visitedCountries} />
+        <ProfileView albumBasePath={`/u/${profile.username}/albums`} initialAlbums={albums} profile={profile} readOnly visitedCityCount={visitedCitiesCount} visitedCountries={visitedCountries} />
       </div>
     </main>
   );

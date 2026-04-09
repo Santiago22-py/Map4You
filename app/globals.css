@@ -68,6 +68,16 @@ input {
   font: inherit;
 }
 
+.trip-date-input::-webkit-calendar-picker-indicator {
+  width: 1.75rem;
+  height: 1.75rem;
+  cursor: pointer;
+}
+
+.trip-date-input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 ::selection {
   background: rgba(255, 100, 47, 0.22);
 }

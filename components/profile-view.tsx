@@ -22,6 +22,7 @@ type ProfileViewProps = {
   initialAlbums: TravelAlbum[];
   profile: UserProfile;
   readOnly?: boolean;
+  visitedCityCount?: number;
   visitedCountries?: VisitedCountry[];
 };
 
@@ -225,11 +226,11 @@ function getAlbumHref(basePath: string, albumId: string) {
   return `${basePath}/${albumId}`;
 }
 
-function getVisitedCountriesSummary(count: number) {
-  return `${count} ${count === 1 ? "país" : "países"} 0 ciudades visitadas`;
+function getVisitedCountriesSummary(countryCount: number, cityCount: number) {
+  return `${countryCount} ${countryCount === 1 ? "país" : "países"} ${cityCount} ${cityCount === 1 ? "ciudad visitada" : "ciudades visitadas"}`;
 }
 
-export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = false, visitedCountries = [] }: ProfileViewProps) {
+export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = false, visitedCityCount = 0, visitedCountries = [] }: ProfileViewProps) {
   const router = useRouter();
   const [albums, setAlbums] = useState(initialAlbums);
   const [currentProfile, setCurrentProfile] = useState(profile);
@@ -566,7 +567,7 @@ export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = 
             </div>
 
             <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
-              <p className="text-base font-semibold uppercase tracking-[0.02em] text-black/85">{getVisitedCountriesSummary(visitedCountryCount)}</p>
+              <p className="text-base font-semibold uppercase tracking-[0.02em] text-black/85">{getVisitedCountriesSummary(visitedCountryCount, visitedCityCount)}</p>
               {readOnly ? (
                 <Link href={`/u/${currentProfile.username}/mapa`} className="rounded-full border border-brand-navy/12 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-brand-burnt transition hover:-translate-y-0.5 hover:bg-[#f7f2ed]">
                   Ver mapa

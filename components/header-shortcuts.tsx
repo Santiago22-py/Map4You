@@ -31,7 +31,7 @@ const baseIcons = [
   },
   {
     alt: "Viajes",
-    href: "/search?q=italy",
+    href: "/viajes",
     src: "/icons/suitcase.svg",
     width: 38,
     height: 35,

@@ -238,16 +238,16 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
 
   return (
     <section className="overflow-hidden rounded-[1.8rem] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
-      <div className="flex items-center justify-between gap-4 bg-[#d78a50] px-6 py-5 text-white">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#d78a50] px-4 py-4 text-white sm:px-6 sm:py-5">
         <div className="flex items-center gap-3">
           <Image src="/icons/social-blue.svg" alt="Amigos" width={30} height={30} className="h-9 w-9 rounded-full bg-white p-1.5" />
           <div>
-            <h2 className="font-display text-[2rem] font-semibold tracking-[-0.05em] sm:text-[2.3rem]">Amigos</h2>
+            <h2 className="font-display text-[1.65rem] font-semibold tracking-[-0.05em] sm:text-[2.3rem]">Amigos</h2>
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-white/80">{getFriendCountLabel(friends.length)}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <p className="hidden text-[1.7rem] font-semibold tracking-[-0.04em] sm:block">{activeFriend?.displayName ?? "Selecciona un amigo"}</p>
           <button type="button" onClick={onClose} aria-label="Cerrar panel social" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#7f3107] text-[#7f3107] transition hover:bg-white/25">
             <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
@@ -258,8 +258,8 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
         </div>
       </div>
 
-      <div className="grid min-h-[44rem] border-t border-black/15 lg:grid-cols-[16.5rem_minmax(0,1fr)]">
-        <aside className="border-r border-black/15 bg-[#f8f4ef] p-5">
+      <div className="grid border-t border-black/15 lg:grid-cols-[minmax(15rem,16.5rem)_minmax(0,1fr)]">
+        <aside className="border-b border-black/15 bg-[#f8f4ef] p-4 sm:p-5 lg:border-b-0 lg:border-r">
           <label className="sr-only" htmlFor="friend-search">Buscar amigos</label>
           <input
             id="friend-search"
@@ -285,15 +285,15 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
               {busySearch ? <p className="text-sm text-black/55">Buscando...</p> : null}
               {!busySearch && !searchResults.length ? <p className="text-sm text-black/55">No hemos encontrado perfiles nuevos.</p> : null}
               {searchResults.map((profile) => (
-                <div key={profile.userId} className="flex items-center justify-between gap-3 rounded-[0.9rem] px-2 py-2 hover:bg-[#f7efe8]">
-                  <div className="flex min-w-0 items-center gap-3">
+                <div key={profile.userId} className="flex flex-wrap items-center justify-between gap-3 rounded-[0.9rem] px-2 py-2 hover:bg-[#f7efe8]">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
                     <ProfileAvatar profile={profile} size={36} />
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-brand-burnt">{profile.displayName}</p>
                       <p className="truncate text-xs text-black/55">@{profile.username}</p>
                     </div>
                   </div>
-                  <button type="button" onClick={() => void handleAddFriend(profile)} className="rounded-full bg-brand-navy px-3 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-brand-blue">
+                  <button type="button" onClick={() => void handleAddFriend(profile)} className="shrink-0 rounded-full bg-brand-navy px-3 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-brand-blue">
                     Solicitar
                   </button>
                 </div>
@@ -314,7 +314,7 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
                         <p className="truncate text-xs text-black/55">@{request.username}</p>
                       </div>
                     </div>
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <button type="button" onClick={() => void handleAcceptRequest(request)} className="rounded-full bg-brand-navy px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-brand-blue">
                         Aceptar
                       </button>
@@ -333,15 +333,15 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
               <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-black/55">Enviadas · {getFriendRequestCountLabel(outgoingRequests.length)}</p>
               <div className="mt-3 space-y-3">
                 {outgoingRequests.map((request) => (
-                  <div key={request.requestId} className="flex items-center justify-between gap-3 rounded-[0.9rem] bg-[#f8f4ef] px-3 py-3">
-                    <div className="flex min-w-0 items-center gap-3">
+                  <div key={request.requestId} className="flex flex-wrap items-center justify-between gap-3 rounded-[0.9rem] bg-[#f8f4ef] px-3 py-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
                       <ProfileAvatar profile={request} size={36} />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-brand-burnt">{request.displayName}</p>
                         <p className="truncate text-xs text-black/55">Pendiente</p>
                       </div>
                     </div>
-                    <button type="button" onClick={() => void handleDeclineRequest(request.requestId)} className="rounded-full border border-black/12 bg-white px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-black/65 transition hover:bg-black/5">
+                    <button type="button" onClick={() => void handleDeclineRequest(request.requestId)} className="shrink-0 rounded-full border border-black/12 bg-white px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-black/65 transition hover:bg-black/5">
                       Cancelar
                     </button>
                   </div>
@@ -376,24 +376,24 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
           </div>
         </aside>
 
-        <div className="flex min-h-[44rem] flex-col bg-white">
+        <div className="flex min-h-[26rem] flex-col bg-white lg:min-h-[44rem]">
           {activeFriend ? (
             <>
-              <div className="flex items-center justify-between gap-4 border-b border-black/10 px-6 py-4">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-black/10 px-4 py-4 sm:px-6">
+                <div className="flex min-w-0 items-center gap-3">
                   <ProfileAvatar profile={activeFriend} size={48} />
-                  <div>
-                    <p className="text-lg font-semibold text-brand-burnt">{activeFriend.displayName}</p>
-                    <p className="text-sm text-black/55">@{activeFriend.username}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-semibold text-brand-burnt">{activeFriend.displayName}</p>
+                    <p className="truncate text-sm text-black/55">@{activeFriend.username}</p>
                   </div>
                 </div>
 
-                <button type="button" onClick={() => void handleRemoveFriend(activeFriend.userId)} className="rounded-full border border-[#cf4e14]/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#cf4e14] transition hover:bg-[#fff1ea]">
+                <button type="button" onClick={() => void handleRemoveFriend(activeFriend.userId)} className="shrink-0 rounded-full border border-[#cf4e14]/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#cf4e14] transition hover:bg-[#fff1ea]">
                   Eliminar amigo
                 </button>
               </div>
 
-              <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+              <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
                 {loadingMessages ? <p className="text-sm text-black/55">Cargando conversación...</p> : null}
                 {!loadingMessages && !visibleMessages.length && encryptionConfigured ? <p className="text-sm leading-7 text-black/55">Todavía no habéis hablado. Envía el primer mensaje cuando quieras.</p> : null}
                 {!encryptionConfigured ? <p className="text-sm leading-7 text-red-700">Configura `MESSAGE_ENCRYPTION_KEY` en el servidor para guardar y leer mensajes cifrados.</p> : null}
@@ -403,7 +403,7 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
 
                   return (
                     <div key={message.id} className={`flex ${ownMessage ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[70%] rounded-[1.4rem] px-6 py-5 ${ownMessage ? "bg-[#d69b71] text-[#4c2208]" : "bg-[#f7efe8] text-brand-ink"}`}>
+                      <div className={`max-w-[88%] rounded-[1.4rem] px-4 py-4 sm:max-w-[70%] sm:px-6 sm:py-5 ${ownMessage ? "bg-[#d69b71] text-[#4c2208]" : "bg-[#f7efe8] text-brand-ink"}`}>
                         <p className="text-[1.05rem] font-semibold leading-8">{message.content}</p>
                         <p className="mt-2 text-right text-sm text-black/65">{formatMessageTime(message.createdAt)}</p>
                       </div>
@@ -412,8 +412,8 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
                 })}
               </div>
 
-              <div className="border-t border-black/10 px-6 py-5">
-                <div className="flex items-center gap-4">
+              <div className="border-t border-black/10 px-4 py-4 sm:px-6 sm:py-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <input
                     value={messageDraft}
                     onChange={(event) => setMessageDraft(event.target.value)}
@@ -431,7 +431,7 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
                     type="button"
                     onClick={() => void handleSendMessage()}
                     disabled={!messageDraft.trim() || !encryptionConfigured || sending}
-                    className="inline-flex h-12 w-12 items-center justify-center rounded-full text-brand-navy transition hover:bg-brand-navy/5 disabled:opacity-40"
+                    className="inline-flex h-12 w-12 shrink-0 self-end items-center justify-center rounded-full text-brand-navy transition hover:bg-brand-navy/5 disabled:opacity-40 sm:self-auto"
                     aria-label="Enviar mensaje"
                   >
                     <svg viewBox="0 0 24 24" className="h-10 w-10" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">

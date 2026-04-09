@@ -526,17 +526,17 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
 
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-[28rem_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
         <div className="space-y-6">
-          <section className="rounded-[1.8rem] bg-white p-8 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
-            <div className="flex items-start gap-6">
+          <section className="rounded-[1.8rem] bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8 sm:p-8">
+            <div className="flex flex-col items-start gap-6 sm:flex-row">
               <div className="relative">
                 {currentProfile.avatarUrl ? (
-                  <div className="relative h-40 w-40 overflow-hidden rounded-full bg-[#e8ccb4]">
+                  <div className="relative h-32 w-32 overflow-hidden rounded-full bg-[#e8ccb4] sm:h-40 sm:w-40">
                     <Image src={currentProfile.avatarUrl} alt={currentProfile.displayName} fill sizes="10rem" className="object-cover" />
                   </div>
                 ) : (
-                  <div className="flex h-40 w-40 items-center justify-center rounded-full bg-[#e8ccb4] text-5xl font-semibold text-brand-navy">
+                  <div className="flex h-32 w-32 items-center justify-center rounded-full bg-[#e8ccb4] text-4xl font-semibold text-brand-navy sm:h-40 sm:w-40 sm:text-5xl">
                     {currentProfile.displayName.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -557,12 +557,12 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
                 ) : null}
               </div>
 
-              <div className="pt-4">
-                <h1 className="font-display text-[2.6rem] font-semibold uppercase leading-[0.95] tracking-[-0.05em] text-brand-navy">{currentProfile.displayName}</h1>
+              <div className="min-w-0 pt-2 sm:pt-4">
+                <h1 className="font-display text-[2rem] font-semibold uppercase leading-[0.95] tracking-[-0.05em] text-brand-navy sm:text-[2.6rem]">{currentProfile.displayName}</h1>
                 {readOnly ? (
-                  <p className="mt-2 text-[2rem] font-semibold tracking-[-0.04em] text-brand-burnt">@{currentProfile.username}</p>
+                  <p className="mt-2 truncate text-[1.4rem] font-semibold tracking-[-0.04em] text-brand-burnt sm:text-[2rem]">@{currentProfile.username}</p>
                 ) : (
-                  <Link href={`/u/${currentProfile.username}`} className="mt-2 block text-[2rem] font-semibold tracking-[-0.04em] text-brand-burnt transition hover:text-brand-navy">
+                  <Link href={`/u/${currentProfile.username}`} className="mt-2 block truncate text-[1.4rem] font-semibold tracking-[-0.04em] text-brand-burnt transition hover:text-brand-navy sm:text-[2rem]">
                     @{currentProfile.username}
                   </Link>
                 )}
@@ -659,10 +659,10 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
             ) : null}
           </section>
 
-          <section className="rounded-[1.8rem] bg-white p-8 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
+          <section className="rounded-[1.8rem] bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8 sm:p-8">
             <h2 className="font-display text-[2rem] font-semibold tracking-[-0.05em] text-brand-burnt">Álbumes de viaje</h2>
 
-            <div className="mt-6 grid grid-cols-3 gap-4">
+            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
               {!readOnly ? (
                 <button
                   type="button"
@@ -703,7 +703,7 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
         {showSocialPanel && !readOnly ? (
           <SocialPanel currentUserId={currentProfile.userId} initialFriends={initialFriends} initialRequests={initialRequests} onClose={() => setShowSocialPanel(false)} onFriendCountChange={setSocialFriendCount} />
         ) : (
-        <section className="rounded-[1.8rem] bg-white p-8 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
+        <section className="rounded-[1.8rem] bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8 sm:p-8">
           {featuredPhotos.length ? (
             <>
               <div>

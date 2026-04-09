@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { PublicHeader } from "@/components/public-header";
 import { getSearchResults } from "@/lib/travel-data";
@@ -14,7 +15,11 @@ type SearchPageProps = {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const resolvedSearchParams = await searchParams;
-  const { country, destinations, providerConfigured, source } = await getSearchResults(resolvedSearchParams.q);
+  const { country, destinations, directDestination, providerConfigured, source } = await getSearchResults(resolvedSearchParams.q);
+
+  if (directDestination) {
+    redirect(`/places/${directDestination.slug}?title=${encodeURIComponent(directDestination.title)}&country=${encodeURIComponent(directDestination.countryName)}`);
+  }
 
   return (
     <main className="flex-1 pb-10 md:pb-14">
@@ -24,7 +29,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <div className="flex items-center gap-4 text-brand-navy md:gap-6">
           <Link
             href="/"
-            aria-label="Back to landing"
+            aria-label="Volver al inicio"
             className="inline-flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-brand-navy/5"
           >
             <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -46,7 +51,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               type="search"
               name="q"
               defaultValue={country.name}
-              placeholder="Buscar pais"
+              placeholder="Buscar país"
               className="w-64 rounded-full bg-white px-5 py-3 text-brand-ink outline-none ring-1 ring-brand-navy/10 placeholder:text-muted/70"
             />
             <button type="submit" className="rounded-full bg-brand-navy px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-blue">
@@ -60,7 +65,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             type="search"
             name="q"
             defaultValue={country.name}
-            placeholder="Buscar pais"
+            placeholder="Buscar país"
             className="min-w-0 flex-1 rounded-full bg-white px-5 py-3 text-brand-ink outline-none ring-1 ring-brand-navy/10 placeholder:text-muted/70"
           />
           <button type="submit" className="rounded-full bg-brand-navy px-4 py-3 text-sm font-bold text-white transition hover:bg-brand-blue">
@@ -97,18 +102,18 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
         {destinations.length === 0 ? (
           <div className="mt-12 rounded-[2rem] bg-white/80 p-6 text-center ring-1 ring-brand-navy/10">
-            <h2 className="font-display text-3xl font-semibold text-brand-navy">Aun no hay ciudades disponibles</h2>
+            <h2 className="font-display text-3xl font-semibold text-brand-navy">Aún no hay ciudades disponibles</h2>
             <p className="mt-3 text-sm leading-7 text-muted">
               {providerConfigured
-                ? `Los proveedores actuales no devolvieron coincidencias de ciudad suficientemente solidas para ${country.name}. Prueba con otro pais mientras afinamos el ranking.`
-                : `Las claves de proveedores en vivo no estan configuradas, asi que la busqueda recurre a ciudades integradas y destinos curados cuando estan disponibles.`}
+                ? `Los proveedores actuales no devolvieron coincidencias de ciudad suficientemente sólidas para ${country.name}. Prueba con otro país mientras afinamos el ranking.`
+                : `Las claves de proveedores en vivo no están configuradas, así que la búsqueda recurre a ciudades integradas y destinos curados cuando están disponibles.`}
             </p>
           </div>
         ) : null}
 
         <p className="mt-8 text-center text-xs uppercase tracking-[0.22em] text-muted/80 md:text-left">
           Fuente: {source}
-          {providerConfigured ? "" : " · usando destinos sin conexion"}
+          {providerConfigured ? "" : " · usando destinos sin conexión"}
         </p>
       </div>
 

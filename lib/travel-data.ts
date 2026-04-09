@@ -113,6 +113,7 @@ export type DestinationDetail = {
 export type SearchResultsPayload = {
   country: CountryMatch;
   destinations: DestinationCard[];
+  directDestination: DestinationCard | null;
   source: "curated" | "directory" | "geodb" | "fallback";
   providerConfigured: boolean;
 };
@@ -128,23 +129,23 @@ const COUNTRY_LOOKUP_REVALIDATE = 60 * 60 * 12;
 const PLACE_DETAILS_REVALIDATE = 60 * 60;
 const PHOTO_URL_REVALIDATE = 60 * 60 * 6;
 
-const COUNTRY_DIRECTORY: Array<CountryMatch & { aliases?: string[]; cities?: string[] }> = [
-  { name: "France", slug: "france", code: "FR", capital: "Paris", cities: ["Paris", "Lyon", "Marseille", "Nice", "Bordeaux"] },
-  { name: "Italy", slug: "italy", code: "IT", capital: "Rome", cities: ["Rome", "Milan", "Florence", "Naples", "Venice"] },
-  { name: "Spain", slug: "spain", code: "ES", capital: "Madrid", cities: ["Madrid", "Barcelona", "Seville", "Valencia", "Granada"] },
-  { name: "Germany", slug: "germany", code: "DE", capital: "Berlin", cities: ["Berlin", "Munich", "Hamburg", "Cologne", "Frankfurt"] },
+const COUNTRY_DIRECTORY: Array<CountryMatch & { aliases?: string[]; cities?: string[]; cityAliases?: string[] }> = [
+  { name: "France", slug: "france", code: "FR", capital: "Paris", aliases: ["francia"], cities: ["Paris", "Lyon", "Marseille", "Nice", "Bordeaux"] },
+  { name: "Italy", slug: "italy", code: "IT", capital: "Rome", aliases: ["italia"], cities: ["Rome", "Milan", "Florence", "Naples", "Venice"], cityAliases: ["roma", "milan", "milan", "florencia", "napoles", "nápoles", "venecia"] },
+  { name: "Spain", slug: "spain", code: "ES", capital: "Madrid", aliases: ["espana", "españa"], cities: ["Madrid", "Barcelona", "Seville", "Valencia", "Granada"], cityAliases: ["sevilla"] },
+  { name: "Germany", slug: "germany", code: "DE", capital: "Berlin", aliases: ["alemania"], cities: ["Berlin", "Munich", "Hamburg", "Cologne", "Frankfurt"], cityAliases: ["munich", "múnich", "colonia", "francfort"] },
   { name: "Brazil", slug: "brazil", code: "BR", capital: "Brasilia", aliases: ["brasil"], cities: ["Sao Paulo", "Rio de Janeiro", "Brasilia", "Salvador", "Recife"] },
-  { name: "Portugal", slug: "portugal", code: "PT", capital: "Lisbon", cities: ["Lisbon", "Porto", "Faro", "Coimbra", "Funchal"] },
-  { name: "Netherlands", slug: "netherlands", code: "NL", capital: "Amsterdam", aliases: ["holland"], cities: ["Amsterdam", "Rotterdam", "Utrecht", "The Hague", "Eindhoven"] },
-  { name: "Belgium", slug: "belgium", code: "BE", capital: "Brussels", cities: ["Brussels", "Bruges", "Antwerp", "Ghent", "Liege"] },
-  { name: "Austria", slug: "austria", code: "AT", capital: "Vienna", cities: ["Vienna", "Salzburg", "Innsbruck", "Graz", "Linz"] },
-  { name: "Switzerland", slug: "switzerland", code: "CH", capital: "Bern", cities: ["Zurich", "Geneva", "Lucerne", "Bern", "Lausanne"] },
-  { name: "United Kingdom", slug: "united-kingdom", code: "GB", capital: "London", aliases: ["uk", "britain", "great britain", "england"], cities: ["London", "Edinburgh", "Manchester", "Liverpool", "Bath"] },
-  { name: "United States", slug: "united-states", code: "US", capital: "Washington", aliases: ["usa", "us", "america"], cities: ["New York", "Los Angeles", "Chicago", "San Francisco", "Miami"] },
-  { name: "Japan", slug: "japan", code: "JP", capital: "Tokyo", cities: ["Tokyo", "Kyoto", "Osaka", "Sapporo", "Fukuoka"] },
-  { name: "South Korea", slug: "south-korea", code: "KR", capital: "Seoul", aliases: ["korea"], cities: ["Seoul", "Busan", "Incheon", "Daegu", "Jeju City"] },
-  { name: "Australia", slug: "australia", code: "AU", capital: "Canberra", cities: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"] },
-  { name: "Canada", slug: "canada", code: "CA", capital: "Ottawa", cities: ["Toronto", "Montreal", "Vancouver", "Quebec City", "Calgary"] },
+  { name: "Portugal", slug: "portugal", code: "PT", capital: "Lisbon", cities: ["Lisbon", "Porto", "Faro", "Coimbra", "Funchal"], cityAliases: ["lisboa"] },
+  { name: "Netherlands", slug: "netherlands", code: "NL", capital: "Amsterdam", aliases: ["holland", "holanda", "paises bajos", "países bajos"], cities: ["Amsterdam", "Rotterdam", "Utrecht", "The Hague", "Eindhoven"], cityAliases: ["la haya"] },
+  { name: "Belgium", slug: "belgium", code: "BE", capital: "Brussels", aliases: ["belgica", "bélgica"], cities: ["Brussels", "Bruges", "Antwerp", "Ghent", "Liege"], cityAliases: ["bruselas", "amberes", "gante", "lieja"] },
+  { name: "Austria", slug: "austria", code: "AT", capital: "Vienna", cities: ["Vienna", "Salzburg", "Innsbruck", "Graz", "Linz"], cityAliases: ["viena"] },
+  { name: "Switzerland", slug: "switzerland", code: "CH", capital: "Bern", aliases: ["suiza"], cities: ["Zurich", "Geneva", "Lucerne", "Bern", "Lausanne"], cityAliases: ["zúrich", "zurich", "ginebra", "lucerna", "berna", "lausana"] },
+  { name: "United Kingdom", slug: "united-kingdom", code: "GB", capital: "London", aliases: ["uk", "britain", "great britain", "england", "reino unido", "gran bretana", "gran bretaña", "inglaterra"], cities: ["London", "Edinburgh", "Manchester", "Liverpool", "Bath"], cityAliases: ["londres", "edimburgo"] },
+  { name: "United States", slug: "united-states", code: "US", capital: "Washington", aliases: ["usa", "us", "america", "estados unidos", "eeuu", "ee.uu."], cities: ["New York", "Los Angeles", "Chicago", "San Francisco", "Miami"], cityAliases: ["nueva york", "san francisco"] },
+  { name: "Japan", slug: "japan", code: "JP", capital: "Tokyo", aliases: ["japon", "japón"], cities: ["Tokyo", "Kyoto", "Osaka", "Sapporo", "Fukuoka"], cityAliases: ["tokio", "kioto"] },
+  { name: "South Korea", slug: "south-korea", code: "KR", capital: "Seoul", aliases: ["korea", "corea del sur"], cities: ["Seoul", "Busan", "Incheon", "Daegu", "Jeju City"], cityAliases: ["seul", "ciudad de jeju"] },
+  { name: "Australia", slug: "australia", code: "AU", capital: "Canberra", cities: ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide"], cityAliases: ["sidney", "sídney", "adelaida"] },
+  { name: "Canada", slug: "canada", code: "CA", capital: "Ottawa", cities: ["Toronto", "Montreal", "Vancouver", "Quebec City", "Calgary"], cityAliases: ["montreal", "montreal", "ciudad de quebec", "otawa"] },
 ];
 
 function slugify(value: string) {
@@ -189,7 +190,7 @@ function resolveSupportedCountryName(inputCountry?: string | null, fallbackCount
   if (sanitizedCountry) {
     const normalizedCountry = slugify(sanitizedCountry);
     const localCountry = countries.find(
-      (country) => country.slug === normalizedCountry || country.name.toLowerCase() === sanitizedCountry.toLowerCase(),
+      (country) => country.slug === normalizedCountry || normalizeSearchQuery(country.name) === normalizeSearchQuery(sanitizedCountry),
     );
     const directoryCountry = findCountryRecord(normalizedCountry);
 
@@ -202,9 +203,11 @@ function resolveSupportedCountryName(inputCountry?: string | null, fallbackCount
 }
 
 function findCountryRecord(query: string) {
+  const normalizedQuery = normalizeSearchQuery(query);
+
   return COUNTRY_DIRECTORY.find((country) => {
-    const values = [country.slug, country.name.toLowerCase(), ...(country.aliases ?? [])];
-    return values.some((value) => value.includes(query) || query.includes(value));
+    const values = [country.slug, country.name, country.capital, ...(country.aliases ?? []), ...(country.cities ?? []), ...(country.cityAliases ?? [])].map((value) => normalizeSearchQuery(value));
+    return values.some((value) => value.includes(normalizedQuery) || normalizedQuery.includes(value));
   });
 }
 
@@ -232,7 +235,7 @@ async function fetchCountryMatch(query?: string | string[]): Promise<CountryMatc
   }
 
   const localCountry = countries.find(
-    (item) => item.slug.includes(normalized) || item.name.toLowerCase().includes(normalized),
+    (item) => normalizeSearchQuery(item.slug).includes(normalized) || normalizeSearchQuery(item.name).includes(normalized),
   );
   const countryRecord = findCountryRecord(normalized);
 
@@ -596,14 +599,14 @@ function buildDateHint(section: "stay" | "eat" | "visit", name: string) {
 
   if (section === "eat") {
     if (normalizedName.includes("cafe") || normalizedName.includes("coffee") || normalizedName.includes("brunch")) {
-      return "Mejor por la manana";
+      return "Mejor por la mañana";
     }
 
     if (normalizedName.includes("dinner") || normalizedName.includes("cena") || normalizedName.includes("bistro")) {
       return "Mejor por la noche";
     }
 
-    return "Funciona muy bien a mediodia";
+    return "Funciona muy bien a mediodía";
   }
 
   if (normalizedName.includes("sunset") || normalizedName.includes("mirador") || normalizedName.includes("viewpoint")) {
@@ -702,7 +705,7 @@ async function fetchGoogleNearbySection(
         name: place.displayName.text,
         detail: buildGooglePoiDetail(place),
         imageUrl: (await getGooglePlacePrimaryPhoto(place, 1200)) ?? null,
-        location: place.formattedAddress ?? "Ubicacion por confirmar",
+        location: place.formattedAddress ?? "Ubicación por confirmar",
         popularity: buildPopularityLabel(place),
         priceRange: buildPriceRangeLabel(place.priceLevel, section),
         dateHint: buildDateHint(section, place.displayName.text),
@@ -718,9 +721,9 @@ function buildGeneratedSummary(title: string, countryName: string, localPlace?: 
     return localPlace.summary;
   }
 
-  const destinationArea = countryName || "la region";
+  const destinationArea = countryName || "la región";
 
-  return `${title} es una de las paradas urbanas mas atractivas de ${destinationArea}, con barrios faciles de reconocer, una escena gastronomica potente y variedad suficiente tanto para una escapada corta como para un viaje mas pausado.`;
+  return `${title} es una de las paradas urbanas más atractivas de ${destinationArea}, con barrios fáciles de reconocer, una escena gastronómica potente y variedad suficiente tanto para una escapada corta como para un viaje más pausado.`;
 }
 
 async function fetchDestinationImagesFromContext(title: string, countryName: string, count: number, context: GoogleDestinationPhotoSources) {
@@ -810,6 +813,53 @@ async function buildDestinationCard(title: string, country: CountryMatch): Promi
   };
 }
 
+function findExactDestinationMatch(query: string | string[] | undefined, destinations: DestinationCard[]) {
+  const normalizedQuery = normalizeSearchQuery(query);
+
+  if (!normalizedQuery) {
+    return null;
+  }
+
+  return (
+    destinations.find((destination) => {
+      const values = [destination.title, destination.slug].map((value) => normalizeSearchQuery(value));
+      return values.includes(normalizedQuery);
+    }) ?? null
+  );
+}
+
+async function getDirectLocalDestinationMatch(query: string | string[] | undefined) {
+  const normalizedQuery = normalizeSearchQuery(query);
+
+  if (!normalizedQuery) {
+    return null;
+  }
+
+  const localPlace = getPlaceByName(normalizedQuery);
+
+  if (!localPlace) {
+    return null;
+  }
+
+  const localCountry = getCountryBySlug(localPlace.countrySlug);
+  const countryMatch: CountryMatch = {
+    capital: undefined,
+    code: undefined,
+    name: localCountry?.name ?? localPlace.countryName,
+    slug: localPlace.countrySlug,
+  };
+
+  return {
+    countryCode: countryMatch.code,
+    countryName: countryMatch.name,
+    countrySlug: countryMatch.slug,
+    imageUrl: null,
+    slug: localPlace.slug,
+    summary: localPlace.summary,
+    title: localPlace.name,
+  } satisfies DestinationCard;
+}
+
 function decorateFallbackItems(
   items: PlaceSectionItem[],
   images: string[],
@@ -834,20 +884,20 @@ function buildGenericItems(
   const templates =
     section === "stay"
       ? [
-          { name: `${title} Centro`, detail: "Una base practica cerca de los barrios principales y de las conexiones de transporte." },
-          { name: `${title} Boutique`, detail: "Una opcion mas pequena para viajeros que prefieren un ambiente mas local." },
-          { name: `${title} Habitaciones de Diseno`, detail: "Una eleccion comoda para una escapada corta con un entorno facil para recorrer a pie." },
+          { name: `${title} Centro`, detail: "Una base práctica cerca de los barrios principales y de las conexiones de transporte." },
+          { name: `${title} Boutique`, detail: "Una opción más pequeña para viajeros que prefieren un ambiente más local." },
+          { name: `${title} Habitaciones de Diseño`, detail: "Una elección cómoda para una escapada corta con un entorno fácil para recorrer a pie." },
         ]
       : section === "eat"
         ? [
-            { name: `${title} Mercado`, detail: "Una parada informal para probar sabores regionales y hacer una pausa rapida al mediodia." },
-            { name: `${title} Cena de Barrio`, detail: "Una opcion fiable para la noche cuando la ciudad entra en su ritmo local." },
-            { name: `${title} Cafe y Bolleria`, detail: "Una alternativa ligera para empezar el dia con calma o hacer una pausa breve." },
+            { name: `${title} Mercado`, detail: "Una parada informal para probar sabores regionales y hacer una pausa rápida al mediodía." },
+            { name: `${title} Cena de Barrio`, detail: "Una opción fiable para la noche cuando la ciudad entra en su ritmo local." },
+            { name: `${title} Café y Bollería`, detail: "Una alternativa ligera para empezar el día con calma o hacer una pausa breve." },
           ]
         : [
-            { name: `${title} Centro Historico`, detail: "Un primer paseo muy solido para entender la distribucion y el ambiente de la ciudad." },
-            { name: `${title} Museo Principal`, detail: "Una parada cultural fiable si quieres una visita de referencia dentro del dia." },
-            { name: `${title} Mirador al Atardecer`, detail: "Una buena opcion para terminar la ruta con vistas de la ciudad a ultima hora." },
+            { name: `${title} Centro Histórico`, detail: "Un primer paseo muy sólido para entender la distribución y el ambiente de la ciudad." },
+            { name: `${title} Museo Principal`, detail: "Una parada cultural fiable si quieres una visita de referencia dentro del día." },
+            { name: `${title} Mirador al Atardecer`, detail: "Una buena opción para terminar la ruta con vistas de la ciudad a última hora." },
           ];
 
   return templates.map((item, index) => ({
@@ -882,7 +932,7 @@ function buildDynamicDestinationDescription(input: {
   visit?: RecommendationCard[];
 }) {
   const { title, countryName, localPlace, context, eat = [], visit = [] } = input;
-  const destinationArea = countryName || "la region";
+  const destinationArea = countryName || "la región";
 
   const landmarkNames = context?.landmarkPlaces
     .map((place) => repairTextEncoding(place.displayName?.text)?.trim())
@@ -894,17 +944,17 @@ function buildDynamicDestinationDescription(input: {
   const firstEat = eat[0]?.name;
   const ratingText =
     typeof bestPlace?.rating === "number"
-      ? ` Con una valoracion de ${bestPlace.rating.toFixed(1)}${typeof bestPlace.userRatingCount === "number" ? ` basada en ${bestPlace.userRatingCount}+ resenas` : ""}, se percibe como una parada muy consolidada.`
+      ? ` Con una valoración de ${bestPlace.rating.toFixed(1)}${typeof bestPlace.userRatingCount === "number" ? ` basada en ${bestPlace.userRatingCount}+ reseñas` : ""}, se percibe como una parada muy consolidada.`
       : "";
 
   if (landmarkNames.length > 0 || firstVisit || firstEat) {
     const landmarkSentence =
       landmarkNames.length > 0
         ? `${title} destaca dentro de ${destinationArea} por referencias tan claras como ${formatSpanishList(landmarkNames)}.`
-        : `${title} destaca dentro de ${destinationArea} por una mezcla muy util de visitas, barrios y ritmo local.`;
+        : `${title} destaca dentro de ${destinationArea} por una mezcla muy útil de visitas, barrios y ritmo local.`;
 
-    const visitSentence = firstVisit ? ` Para empezar el recorrido, ${firstVisit} suele funcionar muy bien como primera parada.` : "";
-    const eatSentence = firstEat ? ` Si quieres una referencia practica para comer, ${firstEat} es una buena forma de tomarle el pulso a la ciudad.` : "";
+      const visitSentence = firstVisit ? ` Para empezar el recorrido, ${firstVisit} suele funcionar muy bien como primera parada.` : "";
+      const eatSentence = firstEat ? ` Si quieres una referencia práctica para comer, ${firstEat} es una buena forma de tomarle el pulso a la ciudad.` : "";
 
     return `${landmarkSentence}${ratingText}${visitSentence}${eatSentence}`;
   }
@@ -913,7 +963,7 @@ function buildDynamicDestinationDescription(input: {
     return localPlace.description;
   }
 
-  return `${title} es una base muy solida para explorar ${destinationArea}, con mezcla de barrios locales, grandes monumentos y una energia que cambia del dia a la noche. La vista en vivo utiliza GeoDB para descubrir ciudades y Google Places para recomendaciones cercanas y fotografia, por eso este resumen se mantiene breve mientras el resto de datos se completa de forma dinamica.`;
+  return `${title} es una base muy sólida para explorar ${destinationArea}, con mezcla de barrios locales, grandes monumentos y una energía que cambia del día a la noche. La vista en vivo utiliza GeoDB para descubrir ciudades y Google Places para recomendaciones cercanas y fotografía, por eso este resumen se mantiene breve mientras el resto de datos se completa de forma dinámica.`;
 }
 
 function inferStats(detail: DestinationDetail["stay"], eat: DestinationDetail["eat"], visit: DestinationDetail["visit"]) {
@@ -927,6 +977,23 @@ function inferStats(detail: DestinationDetail["stay"], eat: DestinationDetail["e
 }
 
 export async function getSearchResults(query?: string | string[]): Promise<SearchResultsPayload> {
+  const directLocalDestination = await getDirectLocalDestinationMatch(query);
+
+  if (directLocalDestination) {
+    return {
+      country: {
+        capital: undefined,
+        code: directLocalDestination.countryCode,
+        name: directLocalDestination.countryName,
+        slug: directLocalDestination.countrySlug,
+      },
+      destinations: [directLocalDestination],
+      directDestination: directLocalDestination,
+      source: "curated",
+      providerConfigured: Boolean(GEODB_API_KEY || GOOGLE_PLACES_API_KEY),
+    };
+  }
+
   const country = await fetchCountryMatch(query);
   const localCountry = getCountryBySlug(country.slug);
   const providerConfigured = Boolean(GEODB_API_KEY || GOOGLE_PLACES_API_KEY);
@@ -942,8 +1009,11 @@ export async function getSearchResults(query?: string | string[]): Promise<Searc
       .slice(0, 6);
 
     if (destinations.length > 0) {
+      const directDestination = findExactDestinationMatch(query, destinations);
+
       return {
         country,
+        directDestination,
         destinations,
         source: "geodb",
         providerConfigured,
@@ -962,8 +1032,11 @@ export async function getSearchResults(query?: string | string[]): Promise<Searc
       .slice(0, 6);
 
     if (destinations.length > 0) {
+      const directDestination = findExactDestinationMatch(query, destinations);
+
       return {
         country,
+        directDestination,
         destinations,
         source: "directory",
         providerConfigured,
@@ -979,6 +1052,7 @@ export async function getSearchResults(query?: string | string[]): Promise<Searc
 
     return {
       country,
+      directDestination: findExactDestinationMatch(query, destinations),
       destinations,
       source: "curated",
       providerConfigured,
@@ -987,6 +1061,7 @@ export async function getSearchResults(query?: string | string[]): Promise<Searc
 
   return {
     country,
+    directDestination: null,
     destinations: [],
     source: "fallback",
     providerConfigured,

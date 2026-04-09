@@ -14,7 +14,7 @@ const manrope = Manrope({
 
 export const metadata: Metadata = {
   title: "Map 4 You",
-  description: "Discover destinations, explore popular places, and start shaping your next trip.",
+  description: "Descubre destinos, explora lugares populares y empieza a dar forma a tu próximo viaje.",
 };
 
 export default function RootLayout({

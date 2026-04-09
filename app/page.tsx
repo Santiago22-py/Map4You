@@ -2,42 +2,19 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-const headerIcons = [
-  {
-    alt: "Search",
-    href: "/search?q=france",
-    src: "/icons/magnifying-glass.svg",
-    width: 31,
-    height: 31,
-  },
-  {
-    alt: "Map",
-    href: "/search?q=france",
-    src: "/icons/map.svg",
-    width: 37,
-    height: 33,
-  },
-  {
-    alt: "Trips",
-    href: "/search?q=italy",
-    src: "/icons/suitcase.svg",
-    width: 38,
-    height: 35,
-  },
-  {
-    alt: "Profile",
-    href: "/places/paris",
-    src: "/icons/profile.svg",
-    width: 46,
-    height: 46,
-  },
-];
+import { HeaderShortcuts } from "@/components/header-shortcuts";
+import { hasSupabaseCredentials } from "@/lib/supabase/config";
+import { getCurrentUser } from "@/lib/supabase/server";
 
 function enterDelay(delay: string): CSSProperties {
   return { "--enter-delay": delay } as CSSProperties;
 }
 
-export default function Home() {
+export default async function Home() {
+  const currentUser = await getCurrentUser();
+  const authEnabled = hasSupabaseCredentials();
+  const authWarning = authEnabled ? null : "Faltan NEXT_PUBLIC_SUPABASE_URL y/o NEXT_PUBLIC_SUPABASE_ANON_KEY.";
+
   return (
     <main className="flex-1 overflow-x-clip pb-10 pt-6 md:pb-16 md:pt-10">
       <div className="flex flex-col gap-8 md:gap-12">
@@ -54,25 +31,7 @@ export default function Home() {
             />
           </Link>
 
-          <nav className="flex items-center gap-4 sm:gap-5 md:gap-7" aria-label="Primary shortcuts">
-            {headerIcons.map((icon, index) => (
-              <Link
-                key={icon.alt}
-                href={icon.href}
-                className="landing-icon-link motion-fade-up"
-                aria-label={icon.alt}
-                style={enterDelay(`${120 + index * 70}ms`)}
-              >
-                <Image
-                  src={icon.src}
-                  alt=""
-                  width={icon.width}
-                  height={icon.height}
-                  className="h-auto w-6 sm:w-7 md:w-auto"
-                />
-              </Link>
-            ))}
-          </nav>
+          <HeaderShortcuts currentUser={Boolean(currentUser)} authEnabled={authEnabled} authWarning={authWarning} animated />
         </header>
 
         <div
@@ -88,7 +47,7 @@ export default function Home() {
             >
               <Image
                 src="/images/landing/lake.png"
-                alt="Lake landscape"
+                alt="Paisaje de lago"
                 width={430}
                 height={430}
                 className="h-auto w-full"
@@ -102,7 +61,7 @@ export default function Home() {
             >
               <Image
                 src="/images/landing/group.png"
-                alt="Group of travelers in the mountains"
+                alt="Grupo de viajeros en la montaña"
                 width={430}
                 height={430}
                 className="h-auto w-full"
@@ -116,7 +75,7 @@ export default function Home() {
             >
               <Image
                 src="/images/landing/car.png"
-                alt="Travelers in an orange jeep"
+                alt="Viajeros en un jeep naranja"
                 width={430}
                 height={430}
                 className="h-auto w-full"
@@ -152,7 +111,7 @@ export default function Home() {
                 id="destination-search"
                 type="search"
                 name="q"
-                placeholder="Buscar Destino"
+                placeholder="Buscar destino"
                 defaultValue=""
                 className="min-w-0 flex-1 bg-transparent py-3 text-base text-brand-ink outline-none placeholder:text-[#b8b8b8] sm:text-[1.08rem]"
               />
@@ -177,13 +136,13 @@ export default function Home() {
             >
               <span className="font-medium">Prueba:</span>
               <Link href="/search?q=france" className="landing-chip rounded-full bg-white/80 px-3 py-1.5 font-semibold text-brand-navy ring-1 ring-brand-navy/10 transition hover:text-brand-orange">
-                France
+                Francia
               </Link>
               <Link href="/search?q=italy" className="landing-chip rounded-full bg-white/80 px-3 py-1.5 font-semibold text-brand-navy ring-1 ring-brand-navy/10 transition hover:text-brand-orange">
-                Italy
+                Italia
               </Link>
               <Link href="/search?q=spain" className="landing-chip rounded-full bg-white/80 px-3 py-1.5 font-semibold text-brand-navy ring-1 ring-brand-navy/10 transition hover:text-brand-orange">
-                Spain
+                España
               </Link>
             </div>
           </div>

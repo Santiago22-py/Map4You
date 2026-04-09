@@ -32,9 +32,9 @@ export default async function PlacePage({ params, searchParams }: PlacePageProps
   }
 
   const sections = [
-    { title: "Places to stay", items: place.stay },
-    { title: "Places to eat", items: place.eat },
-    { title: "Places to visit", items: place.visit },
+    { title: "Dormir", items: place.stay },
+    { title: "Comer", items: place.eat },
+    { title: "Visitar", items: place.visit },
   ];
 
   return (
@@ -45,7 +45,7 @@ export default async function PlacePage({ params, searchParams }: PlacePageProps
         <div className="flex items-center gap-4 text-brand-navy md:gap-6">
           <Link
             href={`/search?q=${encodeURIComponent(place.countryName || place.countrySlug)}`}
-            aria-label={`Back to ${place.countryName}`}
+            aria-label={`Volver a ${place.countryName}`}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-brand-navy/5"
           >
             <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -78,7 +78,7 @@ export default async function PlacePage({ params, searchParams }: PlacePageProps
                 <div key={`${image}-${index}`} className="relative aspect-square overflow-hidden rounded-[2px] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)]">
                   <Image
                     src={image}
-                    alt={`${place.title} gallery ${index + 1}`}
+                    alt={`Galería de ${place.title} ${index + 1}`}
                     fill
                     sizes="(max-width: 1024px) 33vw, 120px"
                     className="object-cover"
@@ -115,13 +115,7 @@ export default async function PlacePage({ params, searchParams }: PlacePageProps
 
         {sections.map((section) => (
           <section key={section.title} className="mt-16 md:mt-20">
-            <h2 className="font-display text-4xl font-semibold tracking-[-0.05em] text-brand-navy sm:text-5xl">
-              {section.title === "Places to stay"
-                ? "Dormir"
-                : section.title === "Places to eat"
-                  ? "Comer"
-                  : "Visitar"}
-            </h2>
+            <h2 className="font-display text-4xl font-semibold tracking-[-0.05em] text-brand-navy sm:text-5xl">{section.title}</h2>
 
             <PoiSectionGrid items={section.items} />
           </section>

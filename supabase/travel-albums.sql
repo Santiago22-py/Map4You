@@ -48,10 +48,46 @@ create table if not exists public.user_trips (
 	check (end_date >= start_date)
 );
 
+create table if not exists public.user_friendships (
+	id uuid primary key default gen_random_uuid(),
+	user_a_id uuid not null references auth.users (id) on delete cascade,
+	user_b_id uuid not null references auth.users (id) on delete cascade,
+	created_at timestamptz not null default timezone('utc', now()),
+	check (user_a_id <> user_b_id),
+	check (user_a_id < user_b_id),
+	unique (user_a_id, user_b_id)
+);
+
+create table if not exists public.user_messages (
+	id uuid primary key default gen_random_uuid(),
+	sender_user_id uuid not null references auth.users (id) on delete cascade,
+	recipient_user_id uuid not null references auth.users (id) on delete cascade,
+	content_ciphertext text not null,
+	content_iv text not null,
+	content_tag text not null,
+	created_at timestamptz not null default timezone('utc', now()),
+	check (sender_user_id <> recipient_user_id)
+);
+
+create table if not exists public.user_friend_requests (
+	id uuid primary key default gen_random_uuid(),
+	sender_user_id uuid not null references auth.users (id) on delete cascade,
+	recipient_user_id uuid not null references auth.users (id) on delete cascade,
+	created_at timestamptz not null default timezone('utc', now()),
+	check (sender_user_id <> recipient_user_id),
+	unique (sender_user_id, recipient_user_id)
+);
+
 create index if not exists travel_albums_user_id_created_at_idx on public.travel_albums (user_id, created_at desc);
 create index if not exists travel_album_photos_album_id_sort_order_idx on public.travel_album_photos (album_id, sort_order);
 create index if not exists visited_countries_user_id_created_at_idx on public.visited_countries (user_id, created_at desc);
 create index if not exists user_trips_user_id_start_date_idx on public.user_trips (user_id, start_date asc);
+create index if not exists user_friendships_user_a_id_created_at_idx on public.user_friendships (user_a_id, created_at desc);
+create index if not exists user_friendships_user_b_id_created_at_idx on public.user_friendships (user_b_id, created_at desc);
+create index if not exists user_friend_requests_sender_user_id_created_at_idx on public.user_friend_requests (sender_user_id, created_at desc);
+create index if not exists user_friend_requests_recipient_user_id_created_at_idx on public.user_friend_requests (recipient_user_id, created_at desc);
+create index if not exists user_messages_sender_user_id_created_at_idx on public.user_messages (sender_user_id, created_at asc);
+create index if not exists user_messages_recipient_user_id_created_at_idx on public.user_messages (recipient_user_id, created_at asc);
 
 create or replace function public.set_travel_album_updated_at()
 returns trigger
@@ -108,6 +144,9 @@ alter table public.profiles enable row level security;
 alter table public.travel_albums enable row level security;
 alter table public.travel_album_photos enable row level security;
 alter table public.visited_countries enable row level security;
+alter table public.user_friendships enable row level security;
+alter table public.user_friend_requests enable row level security;
+alter table public.user_messages enable row level security;
 alter table public.user_trips enable row level security;
 
 drop policy if exists "Users can read their own profile" on public.profiles;
@@ -237,6 +276,62 @@ create policy "Users can read their trips"
 on public.user_trips
 for select
 using (auth.uid() = user_id);
+
+drop policy if exists "Users can read their friendships" on public.user_friendships;
+create policy "Users can read their friendships"
+on public.user_friendships
+for select
+using (auth.uid() = user_a_id or auth.uid() = user_b_id);
+
+drop policy if exists "Users can create their friendships" on public.user_friendships;
+create policy "Users can create their friendships"
+on public.user_friendships
+for insert
+with check (auth.uid() = user_a_id or auth.uid() = user_b_id);
+
+drop policy if exists "Users can delete their friendships" on public.user_friendships;
+create policy "Users can delete their friendships"
+on public.user_friendships
+for delete
+using (auth.uid() = user_a_id or auth.uid() = user_b_id);
+
+drop policy if exists "Users can read their friend requests" on public.user_friend_requests;
+create policy "Users can read their friend requests"
+on public.user_friend_requests
+for select
+using (auth.uid() = sender_user_id or auth.uid() = recipient_user_id);
+
+drop policy if exists "Users can create their friend requests" on public.user_friend_requests;
+create policy "Users can create their friend requests"
+on public.user_friend_requests
+for insert
+with check (auth.uid() = sender_user_id);
+
+drop policy if exists "Users can delete their friend requests" on public.user_friend_requests;
+create policy "Users can delete their friend requests"
+on public.user_friend_requests
+for delete
+using (auth.uid() = sender_user_id or auth.uid() = recipient_user_id);
+
+drop policy if exists "Users can read their messages" on public.user_messages;
+create policy "Users can read their messages"
+on public.user_messages
+for select
+using (auth.uid() = sender_user_id or auth.uid() = recipient_user_id);
+
+drop policy if exists "Users can create their messages" on public.user_messages;
+create policy "Users can create their messages"
+on public.user_messages
+for insert
+with check (
+	auth.uid() = sender_user_id
+	and exists (
+		select 1
+		from public.user_friendships friendships
+		where friendships.user_a_id = least(sender_user_id, recipient_user_id)
+		and friendships.user_b_id = greatest(sender_user_id, recipient_user_id)
+	)
+);
 
 drop policy if exists "Users can create their trips" on public.user_trips;
 create policy "Users can create their trips"

@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useId, useMemo, useRef, useState, type ChangeEvent } from "react";
 
+import { SocialPanel } from "@/components/social-panel";
 import { SignOutButton } from "@/components/sign-out-button";
+import { getFriendCountLabel, type FriendRequestSummary, type FriendSummary } from "@/lib/social";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getTravelAlbumPublicUrl, getTravelAlbumStoragePath, travelAlbumBucket, type TravelAlbum, type TravelAlbumPhoto } from "@/lib/travel-albums";
 import { getProfileImagePublicUrl, getProfileImageStoragePath, profileImageBucket, type UserProfile } from "@/lib/user-profiles";
@@ -19,6 +21,9 @@ const placeholderPhotos = [
 
 type ProfileViewProps = {
   albumBasePath: string;
+  friendCount?: number;
+  initialFriends?: FriendSummary[];
+  initialRequests?: FriendRequestSummary[];
   initialAlbums: TravelAlbum[];
   profile: UserProfile;
   readOnly?: boolean;
@@ -230,7 +235,7 @@ function getVisitedCountriesSummary(countryCount: number, cityCount: number) {
   return `${countryCount} ${countryCount === 1 ? "país" : "países"} ${cityCount} ${cityCount === 1 ? "ciudad visitada" : "ciudades visitadas"}`;
 }
 
-export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = false, visitedCityCount = 0, visitedCountries = [] }: ProfileViewProps) {
+export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [], initialRequests = [], initialAlbums, profile, readOnly = false, visitedCityCount = 0, visitedCountries = [] }: ProfileViewProps) {
   const router = useRouter();
   const [albums, setAlbums] = useState(initialAlbums);
   const [currentProfile, setCurrentProfile] = useState(profile);
@@ -240,6 +245,8 @@ export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = 
   const [formError, setFormError] = useState<string | null>(null);
   const [files, setFiles] = useState<PreviewFile[]>([]);
   const [bioDraft, setBioDraft] = useState(profile.bio ?? "");
+  const [socialFriendCount, setSocialFriendCount] = useState(friendCount);
+  const [showSocialPanel, setShowSocialPanel] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -559,10 +566,17 @@ export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = 
                     @{currentProfile.username}
                   </Link>
                 )}
-                <p className="mt-4 flex items-center gap-2 text-base font-semibold uppercase tracking-[0.03em] text-black/80">
-                  <Image src="/icons/social-blue.svg" alt="Google" width={30} height={30} />
-                  0 amigos
-                </p>
+                {readOnly ? (
+                  <p className="mt-4 flex items-center gap-2 text-base font-semibold uppercase tracking-[0.03em] text-black/80">
+                    <Image src="/icons/social-blue.svg" alt="Amigos" width={30} height={30} />
+                    {getFriendCountLabel(socialFriendCount)}
+                  </p>
+                ) : (
+                  <button type="button" onClick={() => setShowSocialPanel((current) => !current)} className="mt-4 flex items-center gap-2 text-base font-semibold uppercase tracking-[0.03em] text-black/80 transition hover:text-brand-burnt">
+                    <Image src="/icons/social-blue.svg" alt="Amigos" width={30} height={30} />
+                    {getFriendCountLabel(socialFriendCount)}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -686,6 +700,9 @@ export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = 
           </section>
         </div>
 
+        {showSocialPanel && !readOnly ? (
+          <SocialPanel currentUserId={currentProfile.userId} initialFriends={initialFriends} initialRequests={initialRequests} onClose={() => setShowSocialPanel(false)} onFriendCountChange={setSocialFriendCount} />
+        ) : (
         <section className="rounded-[1.8rem] bg-white p-8 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
           {featuredPhotos.length ? (
             <>
@@ -736,6 +753,7 @@ export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = 
             </>
           )}
         </section>
+        )}
       </div>
 
       {createOpen && !readOnly ? (

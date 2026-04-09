@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
         search: "",
       },
       {
+        pathname: "/images/Monetize/SouvenirsPage/**",
+        search: "?v=souvenirs-2026-04-09",
+      },
+      {
         pathname: "/France/**",
         search: "",
       },

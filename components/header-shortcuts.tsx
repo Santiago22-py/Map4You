@@ -36,6 +36,13 @@ const baseIcons = [
     width: 38,
     height: 35,
   },
+  {
+    alt: "Tienda",
+    href: "/tienda",
+    src: "/icons/airplane.svg",
+    width: 37,
+    height: 37,
+  },
 ];
 
 function getEnterDelay(index: number): CSSProperties | undefined {

@@ -20,6 +20,10 @@ export default async function PublicAlbumDetailPage({ params }: PublicAlbumDetai
     redirect("/");
   }
 
+  if (username !== profile.username) {
+    redirect(`/u/${profile.username}/albums/${albumId}`);
+  }
+
   const album = await getPublicTravelAlbum(profile.userId, albumId);
 
   if (!album) {

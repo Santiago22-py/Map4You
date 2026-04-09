@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { formatMessageTime, getFriendCountLabel, getFriendRequestCountLabel, type FriendRequestSummary, type FriendSummary, type SocialMessage, type SocialProfile } from "@/lib/social";
@@ -237,7 +238,7 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
   }
 
   return (
-    <section className="overflow-hidden rounded-[1.8rem] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
+    <section className="flex max-h-[calc(100dvh-1.5rem)] min-h-[min(42rem,calc(100dvh-1.5rem))] flex-col overflow-hidden rounded-[1.8rem] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8 lg:max-h-none lg:min-h-0">
       <div className="flex flex-wrap items-center justify-between gap-3 bg-[#d78a50] px-4 py-4 text-white sm:px-6 sm:py-5">
         <div className="flex items-center gap-3">
           <Image src="/icons/social-blue.svg" alt="Amigos" width={30} height={30} className="h-9 w-9 rounded-full bg-white p-1.5" />
@@ -258,8 +259,8 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
         </div>
       </div>
 
-      <div className="grid border-t border-black/15 lg:grid-cols-[minmax(15rem,16.5rem)_minmax(0,1fr)]">
-        <aside className="border-b border-black/15 bg-[#f8f4ef] p-4 sm:p-5 lg:border-b-0 lg:border-r">
+      <div className="grid min-h-0 flex-1 border-t border-black/15 overflow-y-auto lg:grid-cols-[minmax(15rem,16.5rem)_minmax(0,1fr)] lg:overflow-hidden">
+        <aside className="border-b border-black/15 bg-[#f8f4ef] p-4 sm:p-5 lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <label className="sr-only" htmlFor="friend-search">Buscar amigos</label>
           <input
             id="friend-search"
@@ -353,22 +354,31 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
           <div className="mt-5 space-y-2">
             {friends.length ? (
               friends.map((friend) => (
-                <button
+                <div
                   key={friend.userId}
-                  type="button"
-                  onClick={() => {
-                    setError(null);
-                    setLoadingMessages(true);
-                    setActiveFriendId(friend.userId);
-                  }}
-                  className={`flex w-full items-center gap-3 rounded-[1rem] px-3 py-3 text-left transition ${friend.userId === activeFriendId ? "bg-white shadow-[0_8px_18px_rgba(0,0,0,0.08)]" : "hover:bg-white/70"}`}
+                  className={`flex w-full items-center gap-3 rounded-[1rem] px-3 py-3 transition ${friend.userId === activeFriendId ? "bg-white shadow-[0_8px_18px_rgba(0,0,0,0.08)]" : "hover:bg-white/70"}`}
                 >
-                  <ProfileAvatar profile={friend} />
-                  <div className="min-w-0 flex-1">
+                  <Link
+                    href={`/u/${friend.username}`}
+                    aria-label={`Ver el perfil de ${friend.displayName}`}
+                    className="shrink-0 rounded-full transition hover:scale-[1.03]"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <ProfileAvatar profile={friend} />
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setLoadingMessages(true);
+                      setActiveFriendId(friend.userId);
+                    }}
+                    className="min-w-0 flex-1 text-left"
+                  >
                     <p className="truncate text-sm font-semibold text-brand-burnt">{friend.displayName}</p>
                     <p className="truncate text-xs text-black/55">@{friend.username}</p>
-                  </div>
-                </button>
+                  </button>
+                </div>
               ))
             ) : (
               <p className="rounded-[1rem] bg-white px-4 py-4 text-sm leading-6 text-black/60">Todavía no tienes amigos. Busca perfiles arriba para empezar a chatear.</p>

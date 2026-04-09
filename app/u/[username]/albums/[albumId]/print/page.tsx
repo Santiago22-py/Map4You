@@ -20,6 +20,10 @@ export default async function PublicAlbumPrintPage({ params }: PublicAlbumPrintP
     redirect("/");
   }
 
+  if (username !== profile.username) {
+    redirect(`/u/${profile.username}/albums/${albumId}/print`);
+  }
+
   const album = await getPublicTravelAlbum(profile.userId, albumId);
 
   if (!album) {

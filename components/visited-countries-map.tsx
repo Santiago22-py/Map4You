@@ -9,6 +9,7 @@ import worldAtlas from "world-atlas/countries-110m.json";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getWorldCountryByNumericCode, searchWorldCountries, type WorldCountryOption } from "@/lib/country-catalog";
 import { type UserProfile } from "@/lib/user-profiles";
+import { buildVisitedCityKey, normalizeVisitedCityName, type VisitedCity } from "@/lib/visited-cities";
 import { type VisitedCountry } from "@/lib/visited-countries";
 
 type AtlasGeometry = {
@@ -64,26 +65,56 @@ function getCountLabel(count: number) {
   return `${count} ${count === 1 ? "país visitado" : "países visitados"}`;
 }
 
+function getCityCountLabel(count: number) {
+  return `${count} ${count === 1 ? "ciudad visitada" : "ciudades visitadas"}`;
+}
+
 export function VisitedCountriesMap({
   initialVisitedCountries,
+  initialVisitedCities,
   profile,
   profileHref,
   readOnly = false,
 }: {
   initialVisitedCountries: VisitedCountry[];
+  initialVisitedCities: VisitedCity[];
   profile: UserProfile;
   profileHref?: string;
   readOnly?: boolean;
 }) {
   const [visitedCountries, setVisitedCountries] = useState(initialVisitedCountries);
+  const [visitedCities, setVisitedCities] = useState(initialVisitedCities);
+  const [cityQuery, setCityQuery] = useState("");
   const [query, setQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [savingCityKey, setSavingCityKey] = useState<string | null>(null);
   const [savingCode, setSavingCode] = useState<string | null>(null);
 
   const visitedCodeSet = useMemo(() => new Set(visitedCountries.map((country) => country.code)), [visitedCountries]);
+  const visitedCityKeySet = useMemo(() => new Set(visitedCities.map((city) => `${city.countryCode}:${city.cityKey}`)), [visitedCities]);
   const filteredCountries = useMemo(() => searchWorldCountries(query, 16), [query]);
   const selectedCountries = useMemo(() => [...visitedCountries].sort((left, right) => left.name.localeCompare(right.name, "es")), [visitedCountries]);
+  const [activeCountryCode, setActiveCountryCode] = useState<string>(selectedCountries[0]?.code ?? "");
+  const activeCountry = useMemo(() => selectedCountries.find((country) => country.code === activeCountryCode) ?? selectedCountries[0] ?? null, [activeCountryCode, selectedCountries]);
+  const selectedCities = useMemo(
+    () => [...visitedCities].sort((left, right) => left.countryName.localeCompare(right.countryName, "es") || left.cityName.localeCompare(right.cityName, "es")),
+    [visitedCities],
+  );
+
+  useEffect(() => {
+    if (!selectedCountries.length) {
+      if (activeCountryCode) {
+        setActiveCountryCode("");
+      }
+
+      return;
+    }
+
+    if (!selectedCountries.some((country) => country.code === activeCountryCode)) {
+      setActiveCountryCode(selectedCountries[0]?.code ?? "");
+    }
+  }, [activeCountryCode, selectedCountries]);
 
   useEffect(() => {
     if (!searchOpen) {
@@ -123,13 +154,21 @@ export function VisitedCountriesMap({
     const optimisticCountries = wasVisited
       ? visitedCountries.filter((item) => item.code !== country.code)
       : [...visitedCountries, { ...country, createdAt: new Date().toISOString() }];
+    const optimisticCities = wasVisited ? visitedCities.filter((city) => city.countryCode !== country.code) : visitedCities;
 
     setError(null);
     setSavingCode(country.code);
     setVisitedCountries(optimisticCountries);
+    setVisitedCities(optimisticCities);
 
     try {
       if (wasVisited) {
+        const { error: deleteCitiesError } = await supabase.from("visited_cities").delete().eq("user_id", profile.userId).eq("country_code", country.code);
+
+        if (deleteCitiesError) {
+          throw deleteCitiesError;
+        }
+
         const { error: deleteError } = await supabase
           .from("visited_countries")
           .delete()
@@ -152,10 +191,89 @@ export function VisitedCountriesMap({
 
     } catch (caughtError) {
       setVisitedCountries(visitedCountries);
+      setVisitedCities(visitedCities);
       setError(caughtError instanceof Error ? caughtError.message : "No se pudo guardar el país visitado.");
     } finally {
       setSavingCode(null);
     }
+  }
+
+  async function toggleCity(input: { cityKey: string; cityName: string; countryCode: string; countryName: string }) {
+    if (readOnly) {
+      return;
+    }
+
+    const supabase = createSupabaseBrowserClient();
+
+    if (!supabase) {
+      setError("Faltan las credenciales públicas de Supabase.");
+      return;
+    }
+
+    const compositeKey = `${input.countryCode}:${input.cityKey}`;
+    const wasVisited = visitedCityKeySet.has(compositeKey);
+    const optimisticCities = wasVisited
+      ? visitedCities.filter((city) => !(city.countryCode === input.countryCode && city.cityKey === input.cityKey))
+      : [...visitedCities, { ...input, createdAt: new Date().toISOString() }];
+
+    setError(null);
+    setSavingCityKey(compositeKey);
+    setVisitedCities(optimisticCities);
+
+    try {
+      if (wasVisited) {
+        const { error: deleteError } = await supabase
+          .from("visited_cities")
+          .delete()
+          .eq("user_id", profile.userId)
+          .eq("country_code", input.countryCode)
+          .eq("city_key", input.cityKey);
+
+        if (deleteError) {
+          throw deleteError;
+        }
+      } else {
+        const { error: insertError } = await supabase.from("visited_cities").insert({
+          city_key: input.cityKey,
+          city_name: input.cityName,
+          country_code: input.countryCode,
+          user_id: profile.userId,
+        });
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        setCityQuery("");
+      }
+    } catch (caughtError) {
+      setVisitedCities(visitedCities);
+      setError(caughtError instanceof Error ? caughtError.message : "No se pudo guardar la ciudad visitada.");
+    } finally {
+      setSavingCityKey(null);
+    }
+  }
+
+  async function handleAddCity() {
+    if (!activeCountry) {
+      setError("Primero selecciona un país en el mapa.");
+      return;
+    }
+
+    const cityName = normalizeVisitedCityName(cityQuery);
+    const cityKey = buildVisitedCityKey(cityName);
+
+    if (!cityName || !cityKey) {
+      setError("Escribe una ciudad válida.");
+      return;
+    }
+
+    await toggleCity({
+      cityKey,
+      cityName,
+      countryCode: activeCountry.code,
+      countryName: activeCountry.name,
+    });
   }
 
   return (
@@ -168,7 +286,7 @@ export function VisitedCountriesMap({
             <p className="mt-3 max-w-[38rem] text-[1.02rem] leading-7 text-black/75">
               {readOnly
                 ? "Este mapa muestra los países que esta persona ha marcado en su perfil. Aquí solo puedes consultarlos."
-                : "Haz clic sobre cualquier país del mapa o búscalo desde el selector. Los países marcados se guardan en tu perfil y el contador se actualiza automáticamente."}
+                : "Haz clic sobre cualquier país del mapa o búscalo desde el selector. Después puedes añadir ciudades manualmente dentro de los países marcados. Todo se guarda en tu perfil y el contador se actualiza automáticamente."}
             </p>
           </div>
 
@@ -182,6 +300,13 @@ export function VisitedCountriesMap({
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-navy/55">Selector</p>
                 <p className="mt-2 text-sm font-semibold uppercase tracking-[0.08em] text-brand-burnt">Buscar país</p>
               </button>
+            ) : null}
+
+            {!readOnly ? (
+              <div className="rounded-[1.2rem] bg-[#fbf7f3] px-5 py-4 ring-1 ring-black/6">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-navy/55">Ciudades</p>
+                <p className="mt-2 text-sm font-semibold uppercase tracking-[0.08em] text-brand-burnt">{activeCountry ? activeCountry.name : "Selecciona un país"}</p>
+              </div>
             ) : null}
 
             <div className="rounded-[1.2rem] bg-[#f4fbfb] px-5 py-4 ring-1 ring-[#bee9e7]">
@@ -271,11 +396,94 @@ export function VisitedCountriesMap({
           )}
         </section>
 
+        <section className="rounded-[1.8rem] bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-display text-[1.7rem] font-semibold tracking-[-0.05em] text-brand-burnt">Ciudades seleccionadas</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-brand-navy/55">{getCityCountLabel(selectedCities.length)}</p>
+          </div>
+
+          {!readOnly ? (
+            selectedCountries.length ? (
+              <div className="mt-4 space-y-3">
+                <label htmlFor="selected-country" className="block text-xs font-semibold uppercase tracking-[0.08em] text-brand-navy/55">
+                  País
+                </label>
+                <select
+                  id="selected-country"
+                  value={activeCountry?.code ?? ""}
+                  onChange={(event) => setActiveCountryCode(event.target.value)}
+                  className="w-full rounded-[1rem] border border-black/12 bg-[#fbf7f3] px-4 py-3 text-sm font-semibold text-brand-ink outline-none transition focus:border-brand-navy/35"
+                >
+                  {selectedCountries.map((country) => (
+                    <option key={country.code} value={country.code}>
+                      {country.flag} {country.name}
+                    </option>
+                  ))}
+                </select>
+
+                <label htmlFor="city-search" className="block text-xs font-semibold uppercase tracking-[0.08em] text-brand-navy/55">
+                  Ciudad
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="city-search"
+                    value={cityQuery}
+                    onChange={(event) => setCityQuery(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void handleAddCity();
+                      }
+                    }}
+                    placeholder={activeCountry ? `Escribe una ciudad de ${activeCountry.name}` : "Selecciona un país primero"}
+                    className="min-w-0 flex-1 rounded-[1rem] border border-black/12 bg-[#fbf7f3] px-4 py-3 text-sm text-brand-ink outline-none transition focus:border-brand-navy/35"
+                    disabled={!activeCountry}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleAddCity()}
+                    disabled={!activeCountry || !buildVisitedCityKey(cityQuery) || savingCityKey !== null}
+                    className="rounded-[1rem] bg-brand-navy px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-brand-blue disabled:opacity-60"
+                  >
+                    Añadir
+                  </button>
+                </div>
+                <p className="text-xs leading-5 text-black/55">Añade ciudades manualmente dentro de un país ya seleccionado. Puedes quitarlas tocando su chip en la lista inferior.</p>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm leading-7 text-black/70">Primero marca un país en el mapa para poder añadir ciudades dentro de él.</p>
+            )
+          ) : null}
+
+          {selectedCities.length ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {selectedCities.map((city) => {
+                const compositeKey = `${city.countryCode}:${city.cityKey}`;
+                const isBusy = savingCityKey === compositeKey;
+
+                return (
+                  <button
+                    key={compositeKey}
+                    type="button"
+                    onClick={readOnly ? undefined : () => void toggleCity(city)}
+                    disabled={isBusy}
+                    className={`rounded-full bg-[#eff5f8] px-4 py-2 text-sm font-semibold text-brand-navy ring-1 ring-black/6 ${readOnly ? "cursor-default" : "transition hover:-translate-y-0.5"} ${isBusy ? "opacity-60" : ""}`}
+                  >
+                    {city.cityName} · {city.countryName}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-4 text-sm leading-7 text-black/70">{readOnly ? "Todavía no ha marcado ninguna ciudad en este mapa." : "Todavía no has marcado ninguna ciudad. Selecciona un país y añade las ciudades que quieras guardar."}</p>
+          )}
+        </section>
+
       </aside>
 
       {searchOpen && !readOnly ? (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#d8a989]/50 px-4 py-8 backdrop-blur-[6px]" onClick={() => setSearchOpen(false)}>
-          <section className="relative w-full max-w-[42rem] rounded-[1.9rem] bg-white px-6 py-6 shadow-[0_18px_42px_rgba(0,0,0,0.16)] ring-1 ring-black/8 sm:px-8 sm:py-8" aria-modal="true" role="dialog" onClick={(event) => event.stopPropagation()}>
+        <div className="fixed inset-0 z-[90] overflow-y-auto bg-[#d8a989]/50 px-4 py-4 backdrop-blur-[6px] sm:flex sm:items-center sm:justify-center sm:py-8" onClick={() => setSearchOpen(false)}>
+          <section className="relative mx-auto w-full max-w-[42rem] overflow-y-auto rounded-[1.9rem] bg-white px-6 py-6 shadow-[0_18px_42px_rgba(0,0,0,0.16)] ring-1 ring-black/8 max-sm:min-h-[calc(100dvh-2rem)] max-sm:max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] sm:px-8 sm:py-8" aria-modal="true" role="dialog" onClick={(event) => event.stopPropagation()}>
             <button type="button" aria-label="Cerrar buscador" onClick={() => setSearchOpen(false)} className="absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-black transition hover:bg-black/5">
               <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M6 6l12 12" />

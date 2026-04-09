@@ -11,7 +11,16 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { getFriendCountLabel, type FriendRequestSummary, type FriendSummary } from "@/lib/social";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getTravelAlbumPublicUrl, getTravelAlbumStoragePath, travelAlbumBucket, type TravelAlbum, type TravelAlbumPhoto } from "@/lib/travel-albums";
-import { getProfileImagePublicUrl, getProfileImageStoragePath, profileImageBucket, type UserProfile } from "@/lib/user-profiles";
+import {
+  getDisplayNameValidationError,
+  getProfileImagePublicUrl,
+  getProfileImageStoragePath,
+  getUsernameValidationError,
+  normalizeDisplayName,
+  profileImageBucket,
+  sanitizeUsername,
+  type UserProfile,
+} from "@/lib/user-profiles";
 import { type VisitedCountry } from "@/lib/visited-countries";
 
 const placeholderPhotos = [
@@ -162,8 +171,8 @@ function CreateAlbumModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#d8a989]/50 px-4 py-8 backdrop-blur-[6px]" onClick={busy ? undefined : onClose}>
-      <section className="relative w-full max-w-[79rem] rounded-[1.9rem] bg-white px-7 py-10 shadow-[0_18px_42px_rgba(0,0,0,0.16)] ring-1 ring-black/8 sm:px-12 sm:py-12" aria-modal="true" role="dialog" onClick={(event) => event.stopPropagation()}>
+    <div className="fixed inset-0 z-[90] overflow-y-auto bg-[#d8a989]/50 px-4 py-4 backdrop-blur-[6px] sm:flex sm:items-center sm:justify-center sm:py-8" onClick={busy ? undefined : onClose}>
+      <section className="relative mx-auto w-full max-w-[79rem] overflow-y-auto rounded-[1.9rem] bg-white px-7 py-10 shadow-[0_18px_42px_rgba(0,0,0,0.16)] ring-1 ring-black/8 max-sm:min-h-[calc(100dvh-2rem)] max-sm:max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)] sm:px-12 sm:py-12" aria-modal="true" role="dialog" onClick={(event) => event.stopPropagation()}>
         <button type="button" aria-label="Cerrar" onClick={onClose} disabled={busy} className="absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-black transition hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50">
           <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 6l12 12" />
@@ -171,7 +180,7 @@ function CreateAlbumModal({
           </svg>
         </button>
 
-        <form className="flex min-h-[36rem] flex-col" onSubmit={handleSubmit}>
+        <form className="flex min-h-[32rem] flex-col sm:min-h-[36rem]" onSubmit={handleSubmit}>
           <h2 className="font-display text-[2rem] font-semibold tracking-[-0.05em] text-brand-burnt sm:text-[2.6rem]">Crear álbum</h2>
 
           <div className="mt-6 max-w-[25rem]">
@@ -242,13 +251,18 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
   const [currentProfile, setCurrentProfile] = useState(profile);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [editingIdentity, setEditingIdentity] = useState(false);
   const [editingBio, setEditingBio] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [files, setFiles] = useState<PreviewFile[]>([]);
   const [bioDraft, setBioDraft] = useState(profile.bio ?? "");
+  const [copiedProfileUrl, setCopiedProfileUrl] = useState(false);
+  const [displayNameDraft, setDisplayNameDraft] = useState(profile.displayName);
   const [socialFriendCount, setSocialFriendCount] = useState(friendCount);
   const [showSocialPanel, setShowSocialPanel] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
+  const [savingIdentity, setSavingIdentity] = useState(false);
+  const [usernameDraft, setUsernameDraft] = useState(profile.username);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -263,6 +277,19 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
       }
     };
   }, [files]);
+
+  useEffect(() => {
+    if (!showSocialPanel || readOnly || typeof window === "undefined" || window.innerWidth >= 1024) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [readOnly, showSocialPanel]);
 
   function closeCreateModal() {
     if (creating) {
@@ -462,6 +489,53 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
     });
   }
 
+  async function handleSaveIdentity() {
+    const nextDisplayName = normalizeDisplayName(displayNameDraft);
+    const nextUsername = sanitizeUsername(usernameDraft);
+    const displayNameError = getDisplayNameValidationError(nextDisplayName);
+    const usernameError = getUsernameValidationError(usernameDraft);
+
+    if (displayNameError || usernameError) {
+      setFormError(displayNameError ?? usernameError);
+      return;
+    }
+
+    setSavingIdentity(true);
+    setFormError(null);
+
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          displayName: nextDisplayName,
+          username: nextUsername,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string; profile?: UserProfile } | null;
+
+      if (!response.ok || !payload?.profile) {
+        throw new Error(payload?.error ?? "No se pudo actualizar el perfil.");
+      }
+
+      setCurrentProfile(payload.profile);
+      setDisplayNameDraft(payload.profile.displayName);
+      setUsernameDraft(payload.profile.username);
+      setEditingIdentity(false);
+
+      startTransition(() => {
+        router.refresh();
+      });
+    } catch (identityError) {
+      setFormError(getErrorMessage(identityError));
+    } finally {
+      setSavingIdentity(false);
+    }
+  }
+
   async function handleAvatarSelected(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
     const supabase = createSupabaseBrowserClient();
@@ -540,9 +614,34 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
     }
   }
 
+  async function handleCopyPublicProfileUrl() {
+    const publicProfileUrl = new URL(`/u/${currentProfile.username}`, window.location.origin).toString();
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(publicProfileUrl);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = publicProfileUrl;
+        textarea.setAttribute("readonly", "true");
+        textarea.style.position = "absolute";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      setCopiedProfileUrl(true);
+      window.setTimeout(() => setCopiedProfileUrl(false), 2200);
+    } catch {
+      setFormError("No se pudo copiar el enlace del perfil.");
+    }
+  }
+
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,32rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,34rem)_minmax(0,1fr)]">
         <div className="space-y-6">
           <section className="rounded-[1.8rem] bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8 sm:p-8">
             <div className="flex flex-col items-start gap-6 sm:flex-row">
@@ -573,15 +672,111 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
                 ) : null}
               </div>
 
-              <div className="min-w-0 pt-2 sm:pt-4">
-                <h1 className="font-display text-[2rem] font-semibold uppercase leading-[0.95] tracking-[-0.05em] text-brand-navy sm:text-[2.6rem]">{currentProfile.displayName}</h1>
-                {readOnly ? (
-                  <p className="mt-2 truncate text-[1.4rem] font-semibold tracking-[-0.04em] text-brand-burnt sm:text-[2rem]">@{currentProfile.username}</p>
-                ) : (
-                  <Link href={`/u/${currentProfile.username}`} className="mt-2 block truncate text-[1.4rem] font-semibold tracking-[-0.04em] text-brand-burnt transition hover:text-brand-navy sm:text-[2rem]">
-                    @{currentProfile.username}
-                  </Link>
-                )}
+              <div className="min-w-0 flex-1 pt-2 sm:pt-4">
+                    <div className="min-w-0 max-w-[28rem]">
+                    {editingIdentity ? (
+                      <div className="max-w-[28rem] space-y-3">
+                        <div>
+                          <label htmlFor="profile-display-name" className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-black/55">
+                            Nombre visible
+                          </label>
+                          <input
+                            id="profile-display-name"
+                            type="text"
+                            value={displayNameDraft}
+                            onChange={(event) => setDisplayNameDraft(event.target.value)}
+                            maxLength={60}
+                            className="w-full rounded-[1rem] border border-black/12 bg-white px-4 py-3 text-lg font-semibold text-brand-navy outline-none transition focus:border-brand-navy/35"
+                            placeholder="Tu nombre visible"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="profile-username" className="mb-2 block text-xs font-semibold uppercase tracking-[0.08em] text-black/55">
+                            @usuario
+                          </label>
+                          <div className="flex items-center rounded-[1rem] border border-black/12 bg-white px-4 py-3">
+                            <span className="mr-1 text-lg font-semibold text-brand-burnt">@</span>
+                            <input
+                              id="profile-username"
+                              type="text"
+                              value={usernameDraft}
+                              onChange={(event) => setUsernameDraft(event.target.value)}
+                              maxLength={32}
+                              className="min-w-0 flex-1 bg-transparent text-lg font-semibold text-brand-burnt outline-none"
+                              placeholder="tu_usuario"
+                              autoCapitalize="none"
+                              autoCorrect="off"
+                              spellCheck={false}
+                            />
+                          </div>
+                          <p className="mt-2 text-xs leading-5 text-black/55">Solo letras, numeros y guiones bajos. Tus amistades seguiran enlazadas por tu cuenta, no por el @usuario.</p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-3 pt-1">
+                          <button
+                            type="button"
+                            onClick={handleSaveIdentity}
+                            disabled={savingIdentity}
+                            className="rounded-full bg-brand-navy px-5 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-brand-blue disabled:opacity-60"
+                          >
+                            {savingIdentity ? "Guardando..." : "Guardar cambios"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDisplayNameDraft(currentProfile.displayName);
+                              setUsernameDraft(currentProfile.username);
+                              setEditingIdentity(false);
+                              setFormError(null);
+                            }}
+                            disabled={savingIdentity}
+                            className="rounded-full border border-black/10 bg-white px-5 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-black/70 transition hover:bg-black/5 disabled:opacity-60"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h1 className="font-display text-[2rem] font-semibold uppercase leading-[0.95] tracking-[-0.05em] text-brand-navy [overflow-wrap:anywhere] sm:text-[2.6rem]">{currentProfile.displayName}</h1>
+                        {readOnly ? (
+                          <p className="mt-2 truncate text-[1.4rem] font-semibold tracking-[-0.04em] text-brand-burnt sm:text-[2rem]">@{currentProfile.username}</p>
+                        ) : (
+                          <div className="mt-2">
+                            <button
+                              type="button"
+                              onClick={() => void handleCopyPublicProfileUrl()}
+                              className="block max-w-full truncate text-left text-[1.4rem] font-semibold tracking-[-0.04em] text-brand-burnt transition hover:text-brand-navy sm:text-[2rem]"
+                            >
+                              @{currentProfile.username}
+                            </button>
+                            <p className={`mt-1 text-xs font-semibold uppercase tracking-[0.08em] transition ${copiedProfileUrl ? "text-brand-navy opacity-100" : "opacity-0"}`}>
+                              Enlace copiado
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                </div>
+
+                {!readOnly && !editingIdentity ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDisplayNameDraft(currentProfile.displayName);
+                      setUsernameDraft(currentProfile.username);
+                      setEditingIdentity(true);
+                      setFormError(null);
+                    }}
+                    aria-label="Editar nombre y usuario"
+                    className="mt-4 inline-flex items-center gap-2 rounded-full border border-brand-navy/12 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-brand-navy transition hover:-translate-y-0.5 hover:bg-brand-navy/5"
+                  >
+                    <Image src="/icons/pen.svg" alt="" width={16} height={16} className="h-4 w-4" />
+                    Editar perfil
+                  </button>
+                ) : null}
+
                 {readOnly ? (
                   <p className="mt-4 flex items-center gap-2 text-base font-semibold uppercase tracking-[0.03em] text-black/80">
                     <Image src="/icons/social-blue.svg" alt="Amigos" width={30} height={30} />
@@ -717,7 +912,13 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
         </div>
 
         {showSocialPanel && !readOnly ? (
-          <SocialPanel currentUserId={currentProfile.userId} initialFriends={initialFriends} initialRequests={initialRequests} onClose={() => setShowSocialPanel(false)} onFriendCountChange={setSocialFriendCount} />
+          <div className="fixed inset-0 z-[80] overflow-y-auto bg-[#d8a989]/50 px-3 py-3 backdrop-blur-[6px] lg:static lg:z-auto lg:overflow-visible lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-0" onClick={() => setShowSocialPanel(false)}>
+            <div className="mx-auto flex min-h-full items-end lg:block">
+              <div className="w-full lg:w-auto" onClick={(event) => event.stopPropagation()}>
+                <SocialPanel currentUserId={currentProfile.userId} initialFriends={initialFriends} initialRequests={initialRequests} onClose={() => setShowSocialPanel(false)} onFriendCountChange={setSocialFriendCount} />
+              </div>
+            </div>
+          </div>
         ) : (
         <section className="rounded-[1.8rem] bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8 sm:p-8">
           {featuredPhotos.length ? (

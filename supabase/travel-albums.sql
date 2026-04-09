@@ -34,6 +34,15 @@ create table if not exists public.visited_countries (
 	primary key (user_id, country_code)
 );
 
+create table if not exists public.visited_cities (
+	user_id uuid not null references auth.users (id) on delete cascade,
+	country_code text not null check (country_code ~ '^[A-Z]{2}$'),
+	city_key text not null check (char_length(trim(city_key)) between 1 and 120),
+	city_name text not null check (char_length(trim(city_name)) between 1 and 120),
+	created_at timestamptz not null default timezone('utc', now()),
+	primary key (user_id, country_code, city_key)
+);
+
 create table if not exists public.user_trips (
 	id uuid primary key default gen_random_uuid(),
 	user_id uuid not null references auth.users (id) on delete cascade,
@@ -81,6 +90,7 @@ create table if not exists public.user_friend_requests (
 create index if not exists travel_albums_user_id_created_at_idx on public.travel_albums (user_id, created_at desc);
 create index if not exists travel_album_photos_album_id_sort_order_idx on public.travel_album_photos (album_id, sort_order);
 create index if not exists visited_countries_user_id_created_at_idx on public.visited_countries (user_id, created_at desc);
+create index if not exists visited_cities_user_id_country_code_created_at_idx on public.visited_cities (user_id, country_code, created_at desc);
 create index if not exists user_trips_user_id_start_date_idx on public.user_trips (user_id, start_date asc);
 create index if not exists user_friendships_user_a_id_created_at_idx on public.user_friendships (user_a_id, created_at desc);
 create index if not exists user_friendships_user_b_id_created_at_idx on public.user_friendships (user_b_id, created_at desc);
@@ -144,6 +154,7 @@ alter table public.profiles enable row level security;
 alter table public.travel_albums enable row level security;
 alter table public.travel_album_photos enable row level security;
 alter table public.visited_countries enable row level security;
+alter table public.visited_cities enable row level security;
 alter table public.user_friendships enable row level security;
 alter table public.user_friend_requests enable row level security;
 alter table public.user_messages enable row level security;
@@ -268,6 +279,24 @@ with check (auth.uid() = user_id);
 drop policy if exists "Users can delete their visited countries" on public.visited_countries;
 create policy "Users can delete their visited countries"
 on public.visited_countries
+for delete
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can read their visited cities" on public.visited_cities;
+create policy "Users can read their visited cities"
+on public.visited_cities
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can create their visited cities" on public.visited_cities;
+create policy "Users can create their visited cities"
+on public.visited_cities
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their visited cities" on public.visited_cities;
+create policy "Users can delete their visited cities"
+on public.visited_cities
 for delete
 using (auth.uid() = user_id);
 

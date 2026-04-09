@@ -22,6 +22,10 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
     redirect("/");
   }
 
+  if (username !== profile.username) {
+    redirect(`/u/${profile.username}`);
+  }
+
   const [albums, friendCount, visitedCitiesCount, visitedCountries] = await Promise.all([getPublicTravelAlbumsByUserId(profile.userId), getPublicFriendCountByUserId(profile.userId), getPublicVisitedCityCountByUserId(profile.userId), getPublicVisitedCountriesByUserId(profile.userId)]);
 
   return (

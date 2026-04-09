@@ -1,7 +1,7 @@
 import type { User } from "@supabase/supabase-js";
 
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
-import { getProfileImagePublicUrl, type UserProfile } from "@/lib/user-profiles";
+import { getProfileImagePublicUrl, normalizeDisplayName, sanitizeUsername, type UserProfile } from "@/lib/user-profiles";
 
 type ProfileRow = {
   avatar_path: string | null;
@@ -11,18 +11,8 @@ type ProfileRow = {
   username: string;
 };
 
-function sanitizeUsername(value: string) {
-  return value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9_]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 32);
-}
-
 function buildDefaultProfile(user: User): UserProfile {
-  const fallbackName = String(user.user_metadata.full_name ?? user.email?.split("@")[0] ?? "Viajero").trim();
+  const fallbackName = normalizeDisplayName(String(user.user_metadata.full_name ?? user.email?.split("@")[0] ?? "Viajero")) || "Viajero";
   const fallbackUsername = sanitizeUsername(user.email?.split("@")[0] ?? fallbackName) || `viajero_${user.id.slice(0, 8)}`;
 
   return {

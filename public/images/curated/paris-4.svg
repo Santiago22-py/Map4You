@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title>Paris poster four</title>
+  <desc>Stylized museum poster for Paris.</desc>
+  <rect width="1600" height="1200" fill="#e5d4c1"/>
+  <rect y="860" width="1600" height="340" fill="#15334a"/>
+  <path d="M240 860 800 330 1360 860" fill="#fff6ed"/>
+  <path d="M350 860V600h160v260" fill="#d96d3f"/>
+  <path d="M720 860V500h160v360" fill="#f4e3d3"/>
+  <path d="M1090 860V600h160v260" fill="#d96d3f"/>
+  <text x="120" y="1040" fill="#fff6ed" font-family="Georgia, serif" font-size="132" font-weight="700">LOUVRE</text>
+</svg>

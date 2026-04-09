@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title>Paris poster one</title>
+  <desc>Stylized skyline poster for Paris.</desc>
+  <rect width="1600" height="1200" fill="#e7d6c4"/>
+  <rect y="760" width="1600" height="440" fill="#1b3950"/>
+  <circle cx="1240" cy="220" r="150" fill="#e28743"/>
+  <path d="M780 820 900 290l120 530" fill="none" stroke="#f9f0e5" stroke-width="34" stroke-linecap="round"/>
+  <path d="M830 540h140" stroke="#f9f0e5" stroke-width="22" stroke-linecap="round"/>
+  <path d="M520 820V450h120v370" fill="#f9f0e5"/>
+  <path d="M250 820V560h150v260" fill="#d96d3f"/>
+  <text x="120" y="1030" fill="#f9f0e5" font-family="Georgia, serif" font-size="132" font-weight="700">PARIS</text>
+</svg>

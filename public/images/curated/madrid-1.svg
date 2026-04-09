@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title>Madrid poster one</title>
+  <desc>Stylized plaza poster for Madrid.</desc>
+  <rect width="1600" height="1200" fill="#ead2bd"/>
+  <rect y="790" width="1600" height="410" fill="#15334a"/>
+  <circle cx="1270" cy="220" r="150" fill="#cf5a1f"/>
+  <path d="M240 820h1120" stroke="#fff6ed" stroke-width="28" stroke-linecap="round"/>
+  <path d="M390 820V430h190v390" fill="#fff6ed"/>
+  <path d="M705 820V320h190v500" fill="#cf5a1f"/>
+  <path d="M1020 820V470h170v350" fill="#fff6ed"/>
+  <text x="120" y="1035" fill="#fff6ed" font-family="Georgia, serif" font-size="132" font-weight="700">MADRID</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title>Paris poster two</title>
+  <desc>Stylized bridge and river poster for Paris.</desc>
+  <rect width="1600" height="1200" fill="#f3e7da"/>
+  <rect y="820" width="1600" height="380" fill="#b6d2dd"/>
+  <circle cx="300" cy="220" r="120" fill="#d96d3f" opacity="0.75"/>
+  <path d="M180 790c140-180 350-260 620-260s480 80 620 260" fill="none" stroke="#15334a" stroke-width="38" stroke-linecap="round"/>
+  <path d="M280 790h1040" stroke="#15334a" stroke-width="26" stroke-linecap="round"/>
+  <path d="M640 790V420h150v370" fill="#fff8f0"/>
+  <path d="M860 790V510h110v280" fill="#d96d3f"/>
+  <text x="118" y="1030" fill="#15334a" font-family="Georgia, serif" font-size="132" font-weight="700">SEINE</text>
+</svg>

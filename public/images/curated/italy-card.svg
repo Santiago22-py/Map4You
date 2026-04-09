@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title>Italy curated card</title>
+  <desc>Stylized poster for curated Italy destinations.</desc>
+  <rect width="1200" height="1200" fill="#efe0d0"/>
+  <rect x="100" y="150" width="1000" height="820" rx="56" fill="#fff9f2"/>
+  <circle cx="260" cy="280" r="120" fill="#15334a" opacity="0.12"/>
+  <path d="M230 860h740" stroke="#15334a" stroke-width="26" stroke-linecap="round"/>
+  <path d="M400 860V360h110v500" fill="#d96d3f"/>
+  <path d="M520 360h210v90H520z" fill="#15334a"/>
+  <path d="M730 860V450h90v410" fill="#15334a"/>
+  <path d="M260 730c120-40 250-60 390-60s270 20 390 60" fill="none" stroke="#caa56d" stroke-width="30" stroke-linecap="round"/>
+  <text x="124" y="1040" fill="#15334a" font-family="Georgia, serif" font-size="108" font-weight="700">ITALIA</text>
+  <text x="130" y="1110" fill="#6f6259" font-family="Arial, sans-serif" font-size="42" letter-spacing="8">SEIS CIUDADES</text>
+</svg>

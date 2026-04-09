@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title>Madrid poster three</title>
+  <desc>Stylized park poster for Madrid.</desc>
+  <rect width="1600" height="1200" fill="#e8d6c5"/>
+  <rect y="700" width="1600" height="500" fill="#8eb0a5"/>
+  <circle cx="260" cy="240" r="110" fill="#cf5a1f" opacity="0.8"/>
+  <path d="M270 820c180-270 360-390 530-390s350 120 530 390" fill="none" stroke="#15334a" stroke-width="42" stroke-linecap="round"/>
+  <path d="M480 820V600h120v220" fill="#fff6ed"/>
+  <path d="M760 820V540h140v280" fill="#cf5a1f"/>
+  <path d="M1050 820V620h110v200" fill="#fff6ed"/>
+  <text x="120" y="1035" fill="#15334a" font-family="Georgia, serif" font-size="132" font-weight="700">RETIRO</text>
+</svg>

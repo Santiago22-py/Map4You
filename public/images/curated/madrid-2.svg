@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title>Madrid poster two</title>
+  <desc>Stylized museum poster for Madrid.</desc>
+  <rect width="1600" height="1200" fill="#f4e5d6"/>
+  <rect x="120" y="180" width="1360" height="840" rx="48" fill="#fff9f2"/>
+  <circle cx="320" cy="290" r="130" fill="#cf5a1f" opacity="0.25"/>
+  <path d="M300 880V560h1000v320" fill="none" stroke="#15334a" stroke-width="30"/>
+  <path d="M430 880V640h180v240" fill="#cf5a1f"/>
+  <path d="M710 880V470h180v410" fill="#15334a"/>
+  <path d="M990 880V640h180v240" fill="#cf5a1f"/>
+  <text x="140" y="1040" fill="#15334a" font-family="Georgia, serif" font-size="132" font-weight="700">PRADO</text>
+</svg>

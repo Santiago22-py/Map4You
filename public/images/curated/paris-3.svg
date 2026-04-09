@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title>Paris poster three</title>
+  <desc>Stylized cafe poster for Paris.</desc>
+  <rect width="1600" height="1200" fill="#f0decf"/>
+  <rect x="120" y="180" width="1360" height="820" rx="44" fill="#fff7ef"/>
+  <circle cx="1220" cy="300" r="140" fill="#d96d3f" opacity="0.22"/>
+  <path d="M360 830c80-250 220-390 420-390s340 140 420 390" fill="none" stroke="#15334a" stroke-width="40" stroke-linecap="round"/>
+  <path d="M520 830V610h560v220" fill="none" stroke="#15334a" stroke-width="28"/>
+  <path d="M640 830V680h120v150" fill="#d96d3f"/>
+  <path d="M840 830V680h120v150" fill="#d96d3f"/>
+  <text x="136" y="1030" fill="#15334a" font-family="Georgia, serif" font-size="132" font-weight="700">CAFE</text>
+</svg>

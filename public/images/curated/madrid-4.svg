@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1200" role="img" aria-labelledby="title desc">
+  <title>Madrid poster four</title>
+  <desc>Stylized Gran Via poster for Madrid.</desc>
+  <rect width="1600" height="1200" fill="#ead7c6"/>
+  <rect y="860" width="1600" height="340" fill="#15334a"/>
+  <circle cx="1260" cy="240" r="120" fill="#cf5a1f" opacity="0.9"/>
+  <path d="M250 860 490 440 700 860" fill="#fff6ed"/>
+  <path d="M640 860 860 320 1040 860" fill="#cf5a1f"/>
+  <path d="M980 860 1160 520 1350 860" fill="#fff6ed"/>
+  <text x="120" y="1040" fill="#fff6ed" font-family="Georgia, serif" font-size="132" font-weight="700">GRAN VIA</text>
+</svg>

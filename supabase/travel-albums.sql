@@ -27,8 +27,16 @@ create table if not exists public.travel_album_photos (
 	created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.visited_countries (
+	user_id uuid not null references auth.users (id) on delete cascade,
+	country_code text not null check (country_code ~ '^[A-Z]{2}$'),
+	created_at timestamptz not null default timezone('utc', now()),
+	primary key (user_id, country_code)
+);
+
 create index if not exists travel_albums_user_id_created_at_idx on public.travel_albums (user_id, created_at desc);
 create index if not exists travel_album_photos_album_id_sort_order_idx on public.travel_album_photos (album_id, sort_order);
+create index if not exists visited_countries_user_id_created_at_idx on public.visited_countries (user_id, created_at desc);
 
 create or replace function public.set_travel_album_updated_at()
 returns trigger
@@ -67,6 +75,7 @@ execute function public.set_travel_album_updated_at();
 alter table public.profiles enable row level security;
 alter table public.travel_albums enable row level security;
 alter table public.travel_album_photos enable row level security;
+alter table public.visited_countries enable row level security;
 
 drop policy if exists "Users can read their own profile" on public.profiles;
 create policy "Users can read their own profile"
@@ -171,6 +180,24 @@ using (
 		and albums.user_id = auth.uid()
 	)
 );
+
+drop policy if exists "Users can read their visited countries" on public.visited_countries;
+create policy "Users can read their visited countries"
+on public.visited_countries
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can create their visited countries" on public.visited_countries;
+create policy "Users can create their visited countries"
+on public.visited_countries
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete their visited countries" on public.visited_countries;
+create policy "Users can delete their visited countries"
+on public.visited_countries
+for delete
+using (auth.uid() = user_id);
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

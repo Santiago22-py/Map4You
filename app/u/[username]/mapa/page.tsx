@@ -1,18 +1,17 @@
 import { redirect } from "next/navigation";
 
-import { ProfileView } from "@/components/profile-view";
 import { PublicHeader } from "@/components/public-header";
-import { getPublicTravelAlbumsByUserId } from "@/lib/travel-albums-server";
+import { VisitedCountriesMap } from "@/components/visited-countries-map";
 import { getProfileByUsername } from "@/lib/user-profiles-server";
 import { getPublicVisitedCountriesByUserId } from "@/lib/visited-countries-server";
 
-type PublicProfilePageProps = {
+type PublicProfileMapPageProps = {
   params: Promise<{
     username: string;
   }>;
 };
 
-export default async function PublicProfilePage({ params }: PublicProfilePageProps) {
+export default async function PublicProfileMapPage({ params }: PublicProfileMapPageProps) {
   const { username } = await params;
   const profile = await getProfileByUsername(username);
 
@@ -20,14 +19,14 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
     redirect("/");
   }
 
-  const [albums, visitedCountries] = await Promise.all([getPublicTravelAlbumsByUserId(profile.userId), getPublicVisitedCountriesByUserId(profile.userId)]);
+  const visitedCountries = await getPublicVisitedCountriesByUserId(profile.userId);
 
   return (
     <main className="flex-1 bg-[#f7efe8] pb-10 md:pb-14">
       <PublicHeader />
 
       <div className="page-shell pt-10 md:pt-12">
-        <ProfileView albumBasePath={`/u/${profile.username}/albums`} initialAlbums={albums} profile={profile} readOnly visitedCountries={visitedCountries} />
+        <VisitedCountriesMap initialVisitedCountries={visitedCountries} profile={profile} profileHref={`/u/${profile.username}`} readOnly />
       </div>
     </main>
   );

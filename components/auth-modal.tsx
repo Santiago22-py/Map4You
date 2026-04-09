@@ -10,12 +10,13 @@ type AuthModalProps = {
   disabledReason?: string | null;
   enabled: boolean;
   error?: string;
+  nextPath?: string;
   notice?: string;
   onClose?: () => void;
   open: boolean;
 };
 
-export function AuthModal({ closeHref, disabledReason, enabled, error, notice, onClose, open }: AuthModalProps) {
+export function AuthModal({ closeHref, disabledReason, enabled, error, nextPath, notice, onClose, open }: AuthModalProps) {
   const router = useRouter();
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export function AuthModal({ closeHref, disabledReason, enabled, error, notice, o
           </div>
         ) : null}
 
-        <AuthPanel enabled={enabled} />
+        <AuthPanel enabled={enabled} nextPath={nextPath} />
       </section>
     </div>
   );

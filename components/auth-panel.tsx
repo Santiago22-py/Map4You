@@ -9,7 +9,12 @@ import { getBrowserSiteUrl } from "@/lib/supabase/config";
 
 type AuthPanelProps = {
   enabled: boolean;
+  nextPath?: string;
 };
+
+function getSafeNextPath(path?: string) {
+  return path && path.startsWith("/") && !path.startsWith("//") ? path : "/profile";
+}
 
 function getFriendlyErrorMessage(error: unknown) {
   if (!(error instanceof Error)) {
@@ -33,14 +38,15 @@ function getFriendlyErrorMessage(error: unknown) {
   return "No se pudo completar la autenticación.";
 }
 
-export function AuthPanel({ enabled }: AuthPanelProps) {
+export function AuthPanel({ enabled, nextPath = "/profile" }: AuthPanelProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loadingMode, setLoadingMode] = useState<"signin" | "signup" | "google" | null>(null);
+  const safeNextPath = getSafeNextPath(nextPath);
 
   function getAuthRedirectUrl() {
     const redirectBase = getBrowserSiteUrl();
-    return redirectBase ? `${redirectBase}/auth/callback?next=/profile` : "/auth/callback?next=/profile";
+    return redirectBase ? `${redirectBase}/auth/callback?next=${encodeURIComponent(safeNextPath)}` : `/auth/callback?next=${encodeURIComponent(safeNextPath)}`;
   }
 
   async function handleEmailSignIn(formData: FormData) {
@@ -66,7 +72,7 @@ export function AuthPanel({ enabled }: AuthPanelProps) {
         throw signInError;
       }
 
-      router.replace("/profile");
+      router.replace(safeNextPath);
       router.refresh();
     } catch (caughtError) {
       setError(getFriendlyErrorMessage(caughtError));
@@ -107,11 +113,11 @@ export function AuthPanel({ enabled }: AuthPanelProps) {
       }
 
       if (!data.session) {
-        router.replace("/auth?notice=Revisa tu correo para confirmar la cuenta antes de entrar.");
+        router.replace(`/auth?notice=${encodeURIComponent("Revisa tu correo para confirmar la cuenta antes de entrar.")}&next=${encodeURIComponent(safeNextPath)}`);
         return;
       }
 
-      router.replace("/profile");
+      router.replace(safeNextPath);
       router.refresh();
     } catch (caughtError) {
       setError(getFriendlyErrorMessage(caughtError));

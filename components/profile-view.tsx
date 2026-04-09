@@ -9,6 +9,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { getTravelAlbumPublicUrl, getTravelAlbumStoragePath, travelAlbumBucket, type TravelAlbum, type TravelAlbumPhoto } from "@/lib/travel-albums";
 import { getProfileImagePublicUrl, getProfileImageStoragePath, profileImageBucket, type UserProfile } from "@/lib/user-profiles";
+import { type VisitedCountry } from "@/lib/visited-countries";
 
 const placeholderPhotos = [
   "/images/profile/paris-placeholder.jpg",
@@ -21,6 +22,7 @@ type ProfileViewProps = {
   initialAlbums: TravelAlbum[];
   profile: UserProfile;
   readOnly?: boolean;
+  visitedCountries?: VisitedCountry[];
 };
 
 type PreviewFile = {
@@ -50,41 +52,43 @@ function getFeaturedPhotos(albums: TravelAlbum[]) {
   const featuredPhotos: FeaturedPhoto[] = [];
   const orderedAlbums = [...albums]
     .filter((album) => album.photos.length)
-    .sort((left, right) => getStableWeight(left.id) - getStableWeight(right.id));
-  const remainingPhotosByAlbum = new Map<string, FeaturedPhoto[]>();
-
-  for (const album of orderedAlbums) {
-    const orderedPhotos = [...album.photos]
-      .sort((left, right) => getStableWeight(left.id) - getStableWeight(right.id))
+    .sort((left, right) => getStableWeight(`album-${left.id}`) - getStableWeight(`album-${right.id}`));
+  const photoBuckets = orderedAlbums.map((album) =>
+    [...album.photos]
+      .sort((left, right) => getStableWeight(`${album.id}-${left.id}`) - getStableWeight(`${album.id}-${right.id}`))
       .map((photo) => ({
-      albumId: album.id,
-      albumTitle: album.title,
-      id: photo.id,
-      url: photo.url,
-    }));
+        albumId: album.id,
+        albumTitle: album.title,
+        id: photo.id,
+        url: photo.url,
+      })),
+  );
 
-    if (!orderedPhotos.length) {
-      continue;
-    }
+  let passIndex = 0;
 
-    featuredPhotos.push(orderedPhotos[0]);
-    remainingPhotosByAlbum.set(album.id, orderedPhotos.slice(1));
+  while (featuredPhotos.length < 8) {
+    let addedInPass = false;
 
-    if (featuredPhotos.length === 8) {
-      return featuredPhotos;
-    }
-  }
+    for (const bucket of photoBuckets) {
+      const nextPhoto = bucket[passIndex];
 
-  for (const album of orderedAlbums) {
-    const remainingPhotos = remainingPhotosByAlbum.get(album.id) ?? [];
+      if (!nextPhoto) {
+        continue;
+      }
 
-    for (const photo of remainingPhotos) {
-      featuredPhotos.push(photo);
+      featuredPhotos.push(nextPhoto);
+      addedInPass = true;
 
       if (featuredPhotos.length === 8) {
         return featuredPhotos;
       }
     }
+
+    if (!addedInPass) {
+      break;
+    }
+
+    passIndex += 1;
   }
 
   return featuredPhotos;
@@ -221,7 +225,11 @@ function getAlbumHref(basePath: string, albumId: string) {
   return `${basePath}/${albumId}`;
 }
 
-export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = false }: ProfileViewProps) {
+function getVisitedCountriesSummary(count: number) {
+  return `${count} ${count === 1 ? "país" : "países"} 0 ciudades visitadas`;
+}
+
+export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = false, visitedCountries = [] }: ProfileViewProps) {
   const router = useRouter();
   const [albums, setAlbums] = useState(initialAlbums);
   const [currentProfile, setCurrentProfile] = useState(profile);
@@ -237,6 +245,7 @@ export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = 
 
   const featuredPhotos = useMemo(() => getFeaturedPhotos(albums), [albums]);
   const visibleAlbums = readOnly ? albums.slice(0, 6) : albums.slice(0, 5);
+  const visitedCountryCount = visitedCountries.length;
 
   useEffect(() => {
     return () => {
@@ -556,9 +565,20 @@ export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = 
               </div>
             </div>
 
-            <p className="mt-10 text-base font-semibold uppercase tracking-[0.02em] text-black/85">0 países 0 ciudades visitadas</p>
+            <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+              <p className="text-base font-semibold uppercase tracking-[0.02em] text-black/85">{getVisitedCountriesSummary(visitedCountryCount)}</p>
+              {readOnly ? (
+                <Link href={`/u/${currentProfile.username}/mapa`} className="rounded-full border border-brand-navy/12 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-brand-burnt transition hover:-translate-y-0.5 hover:bg-[#f7f2ed]">
+                  Ver mapa
+                </Link>
+              ) : (
+                <Link href="/mapa" className="rounded-full border border-brand-navy/12 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-brand-burnt transition hover:-translate-y-0.5 hover:bg-[#f7f2ed]">
+                  Editar mapa
+                </Link>
+              )}
+            </div>
 
-            <div className="mt-6 rounded-[1.4rem] bg-[#fbf7f3] p-5 ring-1 ring-black/6">
+            <div className="mt-6">
               <div className="flex items-center justify-between gap-4">
                 <h2 className="font-display text-[1.5rem] font-semibold tracking-[-0.04em] text-brand-burnt">Sobre mí</h2>
                 {!readOnly && !editingBio ? (
@@ -678,9 +698,6 @@ export function ProfileView({ albumBasePath, initialAlbums, profile, readOnly = 
                   <Link key={photo.id} href={getAlbumHref(albumBasePath, photo.albumId)} className="landing-photo relative overflow-hidden rounded-[1.2rem] text-left">
                     <div className="aspect-square" />
                     <Image src={photo.url} alt={photo.albumTitle} fill sizes="(min-width: 1280px) 15rem, (min-width: 640px) 40vw, 90vw" className="object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 to-transparent px-4 py-4 text-white">
-                      <p className="line-clamp-1 text-xs font-semibold uppercase tracking-[0.08em] text-white/82">{photo.albumTitle}</p>
-                    </div>
                   </Link>
                 ))}
               </div>

@@ -24,7 +24,7 @@ const baseIcons = [
   },
   {
     alt: "Mapa",
-    href: "/search?q=france",
+    href: "/mapa",
     src: "/icons/map.svg",
     width: 37,
     height: 33,

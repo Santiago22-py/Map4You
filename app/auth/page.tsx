@@ -9,9 +9,14 @@ import { getCurrentUser } from "@/lib/supabase/server";
 type AuthPageProps = {
   searchParams: Promise<{
     error?: string;
+    next?: string;
     notice?: string;
   }>;
 };
+
+function getSafeNextPath(path?: string) {
+  return path && path.startsWith("/") && !path.startsWith("//") ? path : "/profile";
+}
 
 const floatingPhotos = [
   {
@@ -35,9 +40,10 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
   const [resolvedSearchParams, currentUser] = await Promise.all([searchParams, getCurrentUser()]);
   const authReady = hasSupabaseCredentials();
   const authWarning = authReady ? null : "Faltan NEXT_PUBLIC_SUPABASE_URL y/o NEXT_PUBLIC_SUPABASE_ANON_KEY.";
+  const nextPath = getSafeNextPath(resolvedSearchParams.next);
 
   if (currentUser) {
-    redirect("/profile");
+    redirect(nextPath);
   }
 
   return (
@@ -53,7 +59,7 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
       </div>
 
       <div className="page-shell relative z-10 flex min-h-[calc(100vh-11rem)] items-center justify-center py-12">
-        <AuthModal open enabled={authReady} error={resolvedSearchParams.error} notice={resolvedSearchParams.notice} closeHref="/" disabledReason={authWarning} />
+        <AuthModal open enabled={authReady} error={resolvedSearchParams.error} notice={resolvedSearchParams.notice} closeHref="/" disabledReason={authWarning} nextPath={nextPath} />
       </div>
 
       <div className="pointer-events-none fixed bottom-5 right-5 z-10 md:bottom-6 md:right-8">

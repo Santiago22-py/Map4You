@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 import { startTransition, useMemo, useRef, useState, type ChangeEvent } from "react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { validateImageFiles } from "@/lib/image-upload-validation";
 import { getTravelAlbumPublicUrl, getTravelAlbumStoragePath, travelAlbumBucket, type TravelAlbum, type TravelAlbumPhoto } from "@/lib/travel-albums";
 
 type AlbumDetailViewProps = {
   album: TravelAlbum;
   backHref?: string;
   backLabel?: string;
+  checkoutHref?: string;
   readOnly?: boolean;
 };
 
@@ -33,7 +35,7 @@ async function removeUploadedFiles(paths: string[]) {
   await supabase.storage.from(travelAlbumBucket).remove(paths);
 }
 
-export function AlbumDetailView({ album, backHref = "/profile", backLabel = "Volver al perfil", readOnly = false }: AlbumDetailViewProps) {
+export function AlbumDetailView({ album, backHref = "/profile", backLabel = "Volver al perfil", checkoutHref, readOnly = false }: AlbumDetailViewProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [currentAlbum, setCurrentAlbum] = useState(album);
@@ -85,12 +87,18 @@ export function AlbumDetailView({ album, backHref = "/profile", backLabel = "Vol
   }
 
   async function handlePhotoUpload(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"));
+    const selectedFiles = Array.from(event.target.files ?? []);
+    const validation = validateImageFiles(selectedFiles);
     const supabase = createSupabaseBrowserClient();
 
     event.target.value = "";
 
-    if (!selectedFiles.length) {
+    if (validation.error) {
+      setError(validation.error);
+      return;
+    }
+
+    if (!validation.validFiles.length) {
       return;
     }
 
@@ -119,7 +127,7 @@ export function AlbumDetailView({ album, backHref = "/profile", backLabel = "Vol
     try {
       const insertedPhotos: TravelAlbumPhoto[] = [];
 
-      for (const [index, file] of selectedFiles.entries()) {
+      for (const [index, file] of validation.validFiles.entries()) {
         const sortOrder = nextSortOrder + index + 1;
         const storagePath = getTravelAlbumStoragePath(user.id, currentAlbum.id, sortOrder, file.name);
         const { error: uploadError } = await supabase.storage.from(travelAlbumBucket).upload(storagePath, file, {
@@ -347,29 +355,40 @@ export function AlbumDetailView({ album, backHref = "/profile", backLabel = "Vol
               <p className="text-sm font-semibold uppercase tracking-[0.08em] text-black/55">{currentAlbum.photoCount === 1 ? "1 foto" : `${currentAlbum.photoCount} fotos`}</p>
             </div>
 
-            {!readOnly ? (
-              <div className="flex flex-wrap gap-3">
-                <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
-                <button
-                  type="button"
-                  disabled={uploadingPhotos || deletingAlbum}
-                  onClick={() => fileInputRef.current?.click()}
-                  aria-label="Agregar fotos"
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(180deg,#3266d0,#244a9a)] text-white shadow-[0_16px_30px_rgba(36,74,154,0.28)] transition hover:-translate-y-0.5 disabled:opacity-60"
+            <div className="flex flex-wrap gap-3">
+              {checkoutHref ? (
+                <Link
+                  href={checkoutHref}
+                  className="inline-flex items-center rounded-full bg-[#f3e1d2] px-5 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-brand-burnt shadow-[0_10px_20px_rgba(0,0,0,0.08)] ring-1 ring-brand-burnt/12 transition hover:-translate-y-0.5 hover:bg-[#edd7c5]"
                 >
-                  <Image src="/icons/add.svg" alt="" width={22} height={22} className="h-5 w-5 invert brightness-0 saturate-0" />
-                </button>
-                <button
-                  type="button"
-                  disabled={deletingAlbum || uploadingPhotos || savingTitle}
-                  onClick={handleDeleteAlbum}
-                  aria-label="Eliminar álbum"
-                  className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-red-50 text-brand-burnt shadow-[0_10px_20px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:bg-red-100 disabled:opacity-60"
-                >
-                  <Image src="/icons/trash.svg" alt="" width={20} height={20} className="h-5 w-5" />
-                </button>
-              </div>
-            ) : null}
+                  Imprime este álbum
+                </Link>
+              ) : null}
+
+              {!readOnly ? (
+                <>
+                  <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
+                  <button
+                    type="button"
+                    disabled={uploadingPhotos || deletingAlbum}
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Agregar fotos"
+                    className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(180deg,#3266d0,#244a9a)] text-white shadow-[0_16px_30px_rgba(36,74,154,0.28)] transition hover:-translate-y-0.5 disabled:opacity-60"
+                  >
+                    <Image src="/icons/add.svg" alt="" width={22} height={22} className="h-5 w-5 invert brightness-0 saturate-0" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deletingAlbum || uploadingPhotos || savingTitle}
+                    onClick={handleDeleteAlbum}
+                    aria-label="Eliminar álbum"
+                    className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-red-50 text-brand-burnt shadow-[0_10px_20px_rgba(0,0,0,0.08)] transition hover:-translate-y-0.5 hover:bg-red-100 disabled:opacity-60"
+                  >
+                    <Image src="/icons/trash.svg" alt="" width={20} height={20} className="h-5 w-5" />
+                  </button>
+                </>
+              ) : null}
+            </div>
           </div>
 
           {error ? <p className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
@@ -402,10 +421,6 @@ export function AlbumDetailView({ album, backHref = "/profile", backLabel = "Vol
             </div>
           )}
         </section>
-      </div>
-
-      <div className="pointer-events-none fixed bottom-5 right-5 z-10 md:bottom-6 md:right-8">
-        <Image src="/icons/chat.svg" alt="Chat" width={60} height={60} className="h-14 w-14 md:h-[60px] md:w-[60px]" />
       </div>
     </main>
   );

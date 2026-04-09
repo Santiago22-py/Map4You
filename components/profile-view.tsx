@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useId, useMemo, useRef, useState, type ChangeEvent } from "react";
 
 import { SocialPanel } from "@/components/social-panel";
+import { validateImageFiles } from "@/lib/image-upload-validation";
 import { SignOutButton } from "@/components/sign-out-button";
 import { getFriendCountLabel, type FriendRequestSummary, type FriendSummary } from "@/lib/social";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -278,20 +279,28 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
   }
 
   function handleFilesSelected(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith("image/"));
+    const selectedFiles = Array.from(event.target.files ?? []);
+    const validation = validateImageFiles(selectedFiles);
 
-    if (!selectedFiles.length) {
+    if (validation.error) {
+      setFormError(validation.error);
+      event.target.value = "";
       return;
     }
 
+    if (!validation.validFiles.length) {
+      return;
+    }
+
+    setFormError(null);
     setFiles((current) => {
       const nextFiles = [
         ...current,
-        ...selectedFiles.map((file) => ({ file, id: `${file.name}-${file.size}-${crypto.randomUUID()}`, previewUrl: URL.createObjectURL(file) })),
+        ...validation.validFiles.map((file) => ({ file, id: `${file.name}-${file.size}-${crypto.randomUUID()}`, previewUrl: URL.createObjectURL(file) })),
       ].slice(0, 12);
 
-      if (nextFiles.length > current.length + selectedFiles.length) {
-        const removedFiles = nextFiles.slice(current.length + selectedFiles.length);
+      if (nextFiles.length > current.length + validation.validFiles.length) {
+        const removedFiles = nextFiles.slice(current.length + validation.validFiles.length);
 
         for (const file of removedFiles) {
           URL.revokeObjectURL(file.previewUrl);
@@ -460,6 +469,13 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
     event.target.value = "";
 
     if (!file) {
+      return;
+    }
+
+    const validation = validateImageFiles([file]);
+
+    if (validation.error) {
+      setFormError(validation.error);
       return;
     }
 
@@ -759,10 +775,6 @@ export function ProfileView({ albumBasePath, friendCount = 0, initialFriends = [
       {createOpen && !readOnly ? (
         <CreateAlbumModal busy={creating} error={formError} files={files} onClose={closeCreateModal} onCreate={handleCreateAlbum} onFilesSelected={handleFilesSelected} />
       ) : null}
-
-      <div className="pointer-events-none fixed bottom-5 right-5 z-10 md:bottom-6 md:right-8">
-        <Image src="/icons/chat.svg" alt="Chat" width={60} height={60} className="h-14 w-14 md:h-[60px] md:w-[60px]" />
-      </div>
     </>
   );
 }

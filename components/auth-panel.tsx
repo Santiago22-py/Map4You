@@ -1,7 +1,8 @@
 "use client";
 
+import { isAuthApiError } from "@supabase/supabase-js";
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -17,6 +18,40 @@ function getSafeNextPath(path?: string) {
 }
 
 function getFriendlyErrorMessage(error: unknown) {
+  if (isAuthApiError(error)) {
+    if (
+      error.status === 429
+      || error.code === "over_email_send_rate_limit"
+      || error.code === "over_request_rate_limit"
+    ) {
+      return "Demasiados intentos de registro en poco tiempo. Espera un momento antes de volver a probar o configura SMTP en Supabase si estás haciendo pruebas locales.";
+    }
+
+    if (error.code === "email_provider_disabled" || error.code === "signup_disabled") {
+      return "El registro por correo está desactivado en Supabase.";
+    }
+
+    if (error.code === "email_address_invalid") {
+      return "Supabase está rechazando esa dirección de correo. Si estás usando el SMTP por defecto, prueba con el correo de un miembro del proyecto o configura SMTP propio.";
+    }
+
+    if (error.code === "email_address_not_authorized") {
+      return "El correo de confirmación no se puede enviar con la configuración actual de Supabase. Configura SMTP propio o usa un correo autorizado del proyecto.";
+    }
+
+    if (error.code === "email_exists" || error.code === "user_already_exists") {
+      return "Ese correo ya está registrado.";
+    }
+
+    if (error.code === "invalid_credentials" || error.code === "email_not_confirmed") {
+      return "No se pudo iniciar sesión. Revisa tus credenciales.";
+    }
+
+    if (error.code === "weak_password") {
+      return "La contraseña debe ser más segura.";
+    }
+  }
+
   if (!(error instanceof Error)) {
     return "No se pudo completar la autenticación.";
   }
@@ -42,7 +77,24 @@ export function AuthPanel({ enabled, nextPath = "/profile" }: AuthPanelProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loadingMode, setLoadingMode] = useState<"signin" | "signup" | "google" | null>(null);
+  const submissionInFlightRef = useRef(false);
   const safeNextPath = getSafeNextPath(nextPath);
+
+  function startLoading(mode: "signin" | "signup" | "google") {
+    if (submissionInFlightRef.current) {
+      return false;
+    }
+
+    submissionInFlightRef.current = true;
+    setLoadingMode(mode);
+    setError(null);
+    return true;
+  }
+
+  function finishLoading() {
+    submissionInFlightRef.current = false;
+    setLoadingMode(null);
+  }
 
   function getAuthRedirectUrl() {
     const redirectBase = getBrowserSiteUrl();
@@ -50,12 +102,9 @@ export function AuthPanel({ enabled, nextPath = "/profile" }: AuthPanelProps) {
   }
 
   async function handleEmailSignIn(formData: FormData) {
-    if (!enabled) {
+    if (!enabled || !startLoading("signin")) {
       return;
     }
-
-    setLoadingMode("signin");
-    setError(null);
 
     try {
       const supabase = createSupabaseBrowserClient();
@@ -77,17 +126,14 @@ export function AuthPanel({ enabled, nextPath = "/profile" }: AuthPanelProps) {
     } catch (caughtError) {
       setError(getFriendlyErrorMessage(caughtError));
     } finally {
-      setLoadingMode(null);
+      finishLoading();
     }
   }
 
   async function handleEmailSignUp(formData: FormData) {
-    if (!enabled) {
+    if (!enabled || !startLoading("signup")) {
       return;
     }
-
-    setLoadingMode("signup");
-    setError(null);
 
     try {
       const supabase = createSupabaseBrowserClient();
@@ -122,17 +168,14 @@ export function AuthPanel({ enabled, nextPath = "/profile" }: AuthPanelProps) {
     } catch (caughtError) {
       setError(getFriendlyErrorMessage(caughtError));
     } finally {
-      setLoadingMode(null);
+      finishLoading();
     }
   }
 
   async function handleGoogleSignIn() {
-    if (!enabled) {
+    if (!enabled || !startLoading("google")) {
       return;
     }
-
-    setLoadingMode("google");
-    setError(null);
 
     try {
       const supabase = createSupabaseBrowserClient();
@@ -159,7 +202,7 @@ export function AuthPanel({ enabled, nextPath = "/profile" }: AuthPanelProps) {
     } catch (caughtError) {
       setError(getFriendlyErrorMessage(caughtError));
     } finally {
-      setLoadingMode(null);
+      finishLoading();
     }
   }
 

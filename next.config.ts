@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
         pathname: "/images/**",
         search: "",
       },
+      {
+        pathname: "/France/**",
+        search: "",
+      },
+      {
+        pathname: "/Italy/**",
+        search: "",
+      },
+      {
+        pathname: "/Spain/**",
+        search: "",
+      },
     ],
     remotePatterns: [
       {

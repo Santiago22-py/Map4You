@@ -75,28 +75,53 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
         <section className="mt-10 grid gap-y-12 sm:grid-cols-2 sm:gap-x-8 md:mt-12 md:grid-cols-3 md:gap-y-16 lg:gap-x-14">
           {destinations.map((destination) => (
-            <Link
-              key={`${destination.slug}-${destination.title}`}
-              href={`/places/${destination.slug}?title=${encodeURIComponent(destination.title)}&country=${encodeURIComponent(destination.countryName)}`}
-              className="group flex flex-col items-center text-center"
-            >
-              <div className="relative aspect-square w-full max-w-[12.5rem] overflow-hidden rounded-[2px] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.16)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_rgba(10,48,120,0.18)] sm:max-w-[13rem] md:max-w-[14rem] lg:max-w-[15rem]">
-                {destination.imageUrl ? (
-                  <Image
-                    src={destination.imageUrl}
-                    alt={destination.title}
-                    fill
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 15rem"
-                    className="object-cover transition duration-500 group-hover:scale-[1.03]"
-                  />
-                ) : (
-                  <div className="h-full w-full bg-gradient-to-br from-brand-orange/60 via-white to-brand-navy/30" />
-                )}
+            destination.available ? (
+              <Link
+                key={`${destination.slug}-${destination.title}`}
+                href={`/places/${destination.slug}?title=${encodeURIComponent(destination.title)}&country=${encodeURIComponent(destination.countryName)}`}
+                className="group flex flex-col items-center text-center"
+              >
+                <div className="relative aspect-square w-full max-w-[12.5rem] overflow-hidden rounded-[2px] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.16)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_rgba(10,48,120,0.18)] sm:max-w-[13rem] md:max-w-[14rem] lg:max-w-[15rem]">
+                  {destination.imageUrl ? (
+                    <Image
+                      src={destination.imageUrl}
+                      alt={destination.title}
+                      fill
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 15rem"
+                      className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-brand-orange/60 via-white to-brand-navy/30" />
+                  )}
+                </div>
+                <h2 className="mt-7 text-2xl font-extrabold uppercase tracking-[-0.03em] text-brand-burnt md:text-[2rem]">
+                  {destination.title}
+                </h2>
+                <p className="mt-2 text-xs uppercase tracking-[0.22em] text-brand-navy/70">Disponible ahora</p>
+              </Link>
+            ) : (
+              <div key={`${destination.slug}-${destination.title}`} className="flex flex-col items-center text-center opacity-90">
+                <div className="relative aspect-square w-full max-w-[12.5rem] overflow-hidden rounded-[2px] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.12)] sm:max-w-[13rem] md:max-w-[14rem] lg:max-w-[15rem]">
+                  {destination.imageUrl ? (
+                    <Image
+                      src={destination.imageUrl}
+                      alt={destination.title}
+                      fill
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 15rem"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-brand-orange/60 via-white to-brand-navy/30" />
+                  )}
+                  <div className="absolute inset-x-3 bottom-3 rounded-full bg-white/92 px-3 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-brand-navy shadow-sm">
+                    Proximamente
+                  </div>
+                </div>
+                <h2 className="mt-7 text-2xl font-extrabold uppercase tracking-[-0.03em] text-brand-burnt md:text-[2rem]">
+                  {destination.title}
+                </h2>
               </div>
-              <h2 className="mt-7 text-2xl font-extrabold uppercase tracking-[-0.03em] text-brand-burnt md:text-[2rem]">
-                {destination.title}
-              </h2>
-            </Link>
+            )
           ))}
         </section>
 
@@ -104,22 +129,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="mt-12 rounded-[2rem] bg-white/80 p-6 text-center ring-1 ring-brand-navy/10">
             <h2 className="font-display text-3xl font-semibold text-brand-navy">Aún no hay ciudades disponibles</h2>
             <p className="mt-3 text-sm leading-7 text-muted">
-              {providerConfigured
-                ? `Los proveedores actuales no devolvieron coincidencias de ciudad suficientemente sólidas para ${country.name}. Prueba con otro país mientras afinamos el ranking.`
-                : `Las claves de proveedores en vivo no están configuradas, así que la búsqueda recurre a ciudades integradas y destinos curados cuando están disponibles.`}
+              {`La navegación pública ahora usa un catálogo curado. Prueba con Francia, Italia o España mientras ampliamos el resto de destinos.`}
             </p>
           </div>
         ) : null}
 
         <p className="mt-8 text-center text-xs uppercase tracking-[0.22em] text-muted/80 md:text-left">
           Fuente: {source}
-          {providerConfigured ? "" : " · usando destinos sin conexión"}
+          {providerConfigured ? "" : " · catálogo local"}
         </p>
       </div>
 
-      <div className="pointer-events-none fixed bottom-5 right-5 z-10 md:bottom-6 md:right-8">
-        <Image src="/icons/chat.svg" alt="Chat" width={60} height={60} className="h-14 w-14 md:h-[60px] md:w-[60px]" />
-      </div>
     </main>
   );
 }

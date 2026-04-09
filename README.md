@@ -15,13 +15,13 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Travel Data Strategy
 
-The public browse flow currently uses a free-first provider setup:
+The public browse flow currently uses a curated local catalog:
 
-- GeoDB Cities for live city discovery by country
-- Built-in major city directory as the fallback discovery layer when GeoDB is unavailable
-- Google Places for destination imagery and nearby points of interest
-- Unsplash as a fallback image source when Google Places is not configured
-- Curated local fallback data for seeded destinations
+- Three countries are available in the browse surface: Francia, Italia y España
+- Each country exposes six hand-picked city cards
+- Only Paris and Madrid currently have full destination detail pages enabled
+- City imagery is served from local assets in `public/France`, `public/Italy` and `public/Spain`
+- The rest of the cards stay visible as upcoming destinations while the catalog is expanded
 
 ## Environment Setup
 
@@ -31,27 +31,25 @@ Create `.env.local` from `.env.example`:
 copy .env.example .env.local
 ```
 
-Then add your provider keys:
+Then add provider keys only if you want to experiment with live enrichment or enable the chatbot:
 
 ```bash
 GEODB_API_KEY=your_key_here
 GOOGLE_PLACES_API_KEY=your_key_here
 UNSPLASH_ACCESS_KEY=your_key_here
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+AZURE_OPENAI_API_KEY=your_key_here
+AZURE_OPENAI_DEPLOYMENT=map4you-chat
+AZURE_OPENAI_API_VERSION=2024-10-21
 ```
 
 Optional defaults already exist in `.env.example` for the endpoint and host.
 
-Without a GeoDB key, supported countries still render a built-in set of major cities, and Google Places is used to enrich those destinations with photos and nearby recommendations when configured.
+The default browsing experience no longer depends on GeoDB, Google Places, or Unsplash.
 
-Without a Google Places key, the app falls back to Unsplash for photos and to lightweight generated recommendation cards for live destinations.
+The chatbot uses a curated FAQ knowledge source stored in the repo. If Azure chat credentials are missing, the UI still works and falls back to a small local rules-based helper for common questions.
 
-Google Places setup:
-
-1. Create or select a Google Cloud project.
-2. Enable Places API (New).
-3. Attach billing to the project.
-4. Create an API key restricted to Places API and your server environment.
-5. Add the key as `GOOGLE_PLACES_API_KEY` in `.env.local`.
+If you decide to re-enable live providers later, treat them as optional enrichment only and put budget alerts and key restrictions in place first.
 
 ## Validation
 

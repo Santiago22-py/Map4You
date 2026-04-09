@@ -1,6 +1,7 @@
 export type PlaceSectionItem = {
   name: string;
   detail: string;
+  imageUrl?: string | null;
 };
 
 export type Place = {
@@ -17,6 +18,9 @@ export type Place = {
   stay: PlaceSectionItem[];
   eat: PlaceSectionItem[];
   visit: PlaceSectionItem[];
+  isAvailable: boolean;
+  cardImageUrl: string | null;
+  galleryImageUrls: string[];
 };
 
 export type Country = {
@@ -26,181 +30,169 @@ export type Country = {
   places: Array<Pick<Place, "slug" | "name" | "summary" | "vibe">>;
 };
 
+type CuratedPlaceInput = {
+  aliases?: string[];
+  slug: string;
+  countrySlug: string;
+  countryName: string;
+  name: string;
+  summary: string;
+  description: string;
+  vibe: string;
+  bestFor: string[];
+  cardImageUrl: string | null;
+  galleryImageUrls?: string[];
+  stay?: PlaceSectionItem[];
+  eat?: PlaceSectionItem[];
+  visit?: PlaceSectionItem[];
+  isAvailable?: boolean;
+};
+
+function createStayItems(city: string): PlaceSectionItem[] {
+  return [
+    { name: `${city} Centro`, detail: "Una base practica para moverse a pie y enlazar con las zonas mas activas de la ciudad." },
+    { name: `${city} Boutique`, detail: "Opcion de ritmo mas pausado para quien prioriza barrio, cafes y regreso tranquilo al final del dia." },
+    { name: `${city} Diseño Local`, detail: "Buena eleccion para escapadas cortas con foco en estilo, comodidad y recorridos compactos." },
+  ];
+}
+
+function createEatItems(city: string): PlaceSectionItem[] {
+  return [
+    { name: `Mercado de ${city}`, detail: "Parada facil para probar producto local y resolver un almuerzo informal sin perder tiempo." },
+    { name: `Cena de Barrio en ${city}`, detail: "Un plan fiable para entrar en el ritmo de la ciudad y alargar la noche con calma." },
+    { name: `Cafe de Mañana en ${city}`, detail: "Encaja bien antes de museos, paseos largos o una primera toma de contacto con el centro." },
+  ];
+}
+
+function createVisitItems(city: string): PlaceSectionItem[] {
+  return [
+    { name: `${city} Histórico`, detail: "El recorrido base para entender la ciudad y detectar los barrios que merecen mas tiempo." },
+    { name: `Museo Principal de ${city}`, detail: "Una visita ancla para equilibrar el viaje entre calle, contexto cultural y descanso interior." },
+    { name: `Mirador de ${city}`, detail: "Buen cierre para la hora dorada y para leer la ciudad completa desde arriba." },
+  ];
+}
+
+function createCuratedPlace(input: CuratedPlaceInput): Place {
+  return {
+    aliases: input.aliases,
+    slug: input.slug,
+    countrySlug: input.countrySlug,
+    countryName: input.countryName,
+    name: input.name,
+    summary: input.summary,
+    description: input.description,
+    vibe: input.vibe,
+    bestFor: input.bestFor,
+    gallery: ["Centro urbano", "Ritmo local", "Hora dorada"],
+    stay: input.stay ?? createStayItems(input.name),
+    eat: input.eat ?? createEatItems(input.name),
+    visit: input.visit ?? createVisitItems(input.name),
+    isAvailable: input.isAvailable ?? false,
+    cardImageUrl: input.cardImageUrl,
+    galleryImageUrls: input.galleryImageUrls ?? (input.cardImageUrl ? [input.cardImageUrl] : []),
+  };
+}
+
+function localImagePath(path: string) {
+  return encodeURI(path);
+}
+
+const parisCard = localImagePath("/France/Paris.jpg");
+const lyonCard = localImagePath("/France/Lyon.jpg");
+const marseilleCard = localImagePath("/France/Marseille-France-Europe.jpg");
+const niceCard = localImagePath("/France/nice_ss.jpg");
+const bordeauxCard = localImagePath("/France/bordeaux-place-de-la-bourse.jpg");
+const toulouseCard = localImagePath("/France/Toulouse.jpg");
+
+const romeCard = localImagePath("/Italy/Rome.jpg");
+const florenceCard = localImagePath("/Italy/Florence.jpeg");
+const milanCard = localImagePath("/Italy/Milan-Italy.jpg");
+const veniceCard = localImagePath("/Italy/Venice.jpg");
+const naplesCard = localImagePath("/Italy/Naples.jpg");
+const bolognaCard = localImagePath("/Italy/Bologna.jpg");
+
+const madridCard = localImagePath("/Spain/Madrid.jpg");
+const barcelonaCard = localImagePath("/Spain/Barcelona.jpg");
+const sevilleCard = localImagePath("/Spain/Seville.jpg");
+const valenciaCard = localImagePath("/Spain/Valencia.jpg");
+const granadaCard = localImagePath("/Spain/Granada.jpg");
+const bilbaoCard = localImagePath("/Spain/Bilbao.jpg");
+
+const parisGallery = [
+  parisCard,
+  localImagePath("/France/Dormir/Shangri-La.jpg"),
+  localImagePath("/France/Comer/BreizhCafe.jpg"),
+  localImagePath("/France/Visitar/Tour_Eiffel_Wikimedia_Commons_(cropped).jpg"),
+];
+const madridGallery = [
+  madridCard,
+  localImagePath("/Spain/Dormir/FourSeasonsHotel.jpg"),
+  localImagePath("/Spain/Comer/Chocolatería__San_Gines_-Madrid-2009.jpg"),
+  localImagePath("/Spain/Visitar/Plaza_Mayor_de_Madrid_06.jpg"),
+];
+
+const parisStay: PlaceSectionItem[] = [
+  { name: "Shangri-La Paris", detail: "Una estancia de referencia para quien quiere vistas icónicas y un ritmo claramente más especial en la ciudad.", imageUrl: localImagePath("/France/Dormir/Shangri-La.jpg") },
+  { name: "Hôtel Lutetia", detail: "Muy buena base para combinar barrio, diseño clásico y acceso cómodo a paseos largos por la orilla izquierda.", imageUrl: localImagePath("/France/Dormir/Hôtel_Lutetia,_Paris_6e.jpg") },
+  { name: "Pullman Paris Tour Eiffel", detail: "Encaja bien si quieres una ubicación muy reconocible y una primera visita con logística sencilla.", imageUrl: localImagePath("/France/Dormir/Pullman Hotel.jpg") },
+];
+
+const parisEat: PlaceSectionItem[] = [
+  { name: "Breizh Café", detail: "Parada muy útil para una comida informal con carácter local en un entorno fácil de insertar entre paseos.", imageUrl: localImagePath("/France/Comer/BreizhCafe.jpg") },
+  { name: "Du Pain et des Idées", detail: "Perfecto para empezar la mañana con bollería fuerte y una primera caminata por la ciudad.", imageUrl: localImagePath("/France/Comer/Du Pain et des idees.jpg") },
+  { name: "La Maison d'Isabelle", detail: "Muy buena opción para una parada breve de panadería y café cuando el plan pide seguir caminando por el centro sin romper el ritmo.", imageUrl: localImagePath("/France/Comer/la-maison-disabelle-courtneytraub-paris-1024x659.jpg") },
+];
+
+const parisVisit: PlaceSectionItem[] = [
+  { name: "Torre Eiffel", detail: "La gran ancla visual del viaje; conviene dejarle un tramo propio del día y no verla con prisa.", imageUrl: localImagePath("/France/Visitar/Tour_Eiffel_Wikimedia_Commons_(cropped).jpg") },
+  { name: "Museo del Louvre", detail: "Funciona mejor como visita central del itinerario cultural, con tiempo para entrar y salir sin apretar demasiado el resto.", imageUrl: localImagePath("/France/Visitar/paris-louvre-pyramid-hd.jpg") },
+  { name: "Arco del Triunfo", detail: "Muy buena parada para leer la escala monumental de París y enlazar con un paseo más amplio por la zona.", imageUrl: localImagePath("/France/Visitar/arco-do-triunfo-1.jpg") },
+];
+
+const madridStay: PlaceSectionItem[] = [
+  { name: "Four Seasons Hotel Madrid", detail: "Una base muy sólida para una escapada amplia, con ubicación central y una estancia claramente más premium.", imageUrl: localImagePath("/Spain/Dormir/FourSeasonsHotel.jpg") },
+  { name: "The Palace, Madrid", detail: "Encaja especialmente bien si quieres combinar museos, paseos elegantes y un punto clásico en la experiencia.", imageUrl: localImagePath("/Spain/Dormir/ThePalace.jpg") },
+  { name: "Tótem Madrid", detail: "Opción más contenida y de diseño para quien prefiere moverse por barrios con algo más de calma.", imageUrl: localImagePath("/Spain/Dormir/Totem.jpg") },
+];
+
+const madridEat: PlaceSectionItem[] = [
+  { name: "Chocolatería San Ginés", detail: "Una parada muy reconocible para abrir o cerrar la ruta con uno de los clásicos más fáciles de encajar.", imageUrl: localImagePath("/Spain/Comer/Chocolatería__San_Gines_-Madrid-2009.jpg") },
+  { name: "Amazónico", detail: "Buena referencia para una cena con más escena y un ritmo claramente nocturno.", imageUrl: localImagePath("/Spain/Comer/Amazonic.jpg") },
+  { name: "Vips", detail: "Solución práctica para una comida rápida cuando el plan del día prioriza moverse mucho por la ciudad.", imageUrl: localImagePath("/Spain/Comer/Vips.jpg") },
+];
+
+const madridVisit: PlaceSectionItem[] = [
+  { name: "Plaza Mayor", detail: "Punto muy útil para entrar en el corazón histórico y empezar a leer el centro con facilidad.", imageUrl: localImagePath("/Spain/Visitar/Plaza_Mayor_de_Madrid_06.jpg") },
+  { name: "Parque del Retiro", detail: "Compensa mucho como pausa larga entre museos y barrios más densos del itinerario.", imageUrl: localImagePath("/Spain/Visitar/Parque del Retiro.jpg") },
+  { name: "Santiago Bernabéu", detail: "Una parada muy clara para quien quiere añadir una capa contemporánea y deportiva al viaje por Madrid.", imageUrl: localImagePath("/Spain/Visitar/santiago-bernabeu-at-night-hero.jpg") },
+];
+
 const places: Place[] = [
-  {
-    aliases: ["paris", "parís"],
-    slug: "paris",
-    countrySlug: "france",
-    countryName: "Francia",
-    name: "Paris",
-    summary: "Arquitectura, paseos junto al río y barrios icónicos concentrados en una sola ciudad.",
-    description:
-      "París combina mañanas de museos, terrazas de café, calles con estilo y vistas nocturnas sobre el Sena. Es ideal para quienes buscan una ciudad densa y con muchas capas, donde cada arrondissement se siente distinto.",
-    vibe: "Escapadas románticas y recorridos centrados en la cultura",
-    bestFor: ["Escapadas de fin de semana", "Museos", "Viajes gastronómicos", "Primer viaje a Europa"],
-    gallery: ["Skyline en hora dorada", "Orillas del Sena", "Cafés de barrio"],
-    stay: [
-      { name: "Estancia Boutique Le Marais", detail: "Una base muy caminable cerca de galerías, pastelerías y zonas animadas al caer la tarde." },
-      { name: "Apartamento Saint-Germain", detail: "Buenas mañanas tranquilas, librerías y acceso sencillo al río." },
-      { name: "Loft Canal Saint-Martin", detail: "Una opción con un aire más local para paseos largos y comidas informales." },
-    ],
-    eat: [
-      { name: "Ruta Gastronómica Rue Cler", detail: "Quesos, bollería, compras para picnic y paradas fáciles para comer al mediodía." },
-      { name: "Circuito de Bistrós Nocturnos", detail: "Platos parisinos clásicos en comedores pequeños y con ambiente cálido." },
-      { name: "Café Matinal en Montorgueil", detail: "Muy buena opción para empezar el día con calma antes de museos o compras." },
-    ],
-    visit: [
-      { name: "Louvre y Tuileries", detail: "Funciona mejor si se reparte entre un bloque de museo y un paseo por los jardines por la tarde." },
-      { name: "Calles de Montmartre", detail: "Un recorrido en altura con vistas, escaleras y calles laterales con mucho carácter." },
-      { name: "Sena al Atardecer", detail: "Una actividad fácil de colocar para la primera tarde o noche en la ciudad." },
-    ],
-  },
-  {
-    aliases: ["versailles", "versalles"],
-    slug: "versailles",
-    countrySlug: "france",
-    countryName: "Francia",
-    name: "Versailles",
-    summary: "Interiores reales, jardines formales y una gran excursión de un día desde París.",
-    description:
-      "Versalles funciona muy bien como contraste tranquilo frente a París. El palacio acapara la atención, pero la finca, los canales y los jardines son lo que convierten la visita en un día completo y no en una parada rápida.",
-    vibe: "Excursiones elegantes y tardes culturales pausadas",
-    bestFor: ["Excursiones de un día", "Historia", "Jardines", "Fotografía"],
-    gallery: ["Fachadas del palacio", "Jardines formales", "Reflejos del canal"],
-    stay: [
-      { name: "Hotel del Centro Histórico", detail: "Práctico para entrar pronto en el recinto y disfrutar de calles tranquilas por la tarde." },
-      { name: "Casa de Huéspedes junto al Jardín", detail: "Una opción más residencial y calmada si decides pasar la noche." },
-      { name: "Habitaciones Boutique en Casa Solariega", detail: "Un pequeño lujo para viajeros que prefieren un itinerario más pausado." },
-    ],
-    eat: [
-      { name: "Almuerzo en la Plaza del Mercado", detail: "Platos locales sencillos y comidas centradas en producto cerca de la zona del palacio." },
-      { name: "Pausa en Salón de Té", detail: "Buena parada a media tarde después de recorrer los interiores del palacio." },
-      { name: "Brasserie junto al Recinto", detail: "Un descanso fácil antes de volver en tren a París." },
-    ],
-    visit: [
-      { name: "Galería de los Espejos", detail: "Conviene ir pronto para evitar la franja con más gente." },
-      { name: "Jardines y Fuentes", detail: "Es en la parte más amplia del recinto donde la visita realmente gana aire." },
-      { name: "Ruta del Gran Trianon", detail: "Una mejor elección para quienes prefieren rincones más tranquilos." },
-    ],
-  },
-  {
-    aliases: ["provence", "provenza"],
-    slug: "provence",
-    countrySlug: "france",
-    countryName: "Francia",
-    name: "Provence",
-    summary: "Carreteras entre pueblos, mercados locales, luz cálida y viajes lentos centrados en comer bien.",
-    description:
-      "La Provenza gira menos en torno a un único monumento y más a una secuencia: mercados por la mañana, comidas largas, carreteras escénicas y tardes en pueblos pequeños. Va muy bien para viajeros que buscan un ritmo suave y mucho carácter regional.",
-    vibe: "Rutas escénicas por carretera y pueblos recorridos sin prisa",
-    bestFor: ["Viajes por carretera", "Mercados", "Escapadas de verano", "Comida local"],
-    gallery: ["Calles de piedra", "Puestos de mercado al aire libre", "Luz del campo"],
-    stay: [
-      { name: "Maison Rural", detail: "Buena base para moverse entre pueblos sin cambiar de alojamiento constantemente." },
-      { name: "Posada en la Colina", detail: "Vistas, cenas sencillas y tardes mucho más tranquilas." },
-      { name: "Estancia en Finca de Lavanda", detail: "Encaja mejor en itinerarios de temporada con mucho tiempo al aire libre." },
-    ],
-    eat: [
-      { name: "Almuerzo de Mercado Semanal", detail: "Monta la comida con producto local, pan y puestos de queso del mercado." },
-      { name: "Cena en Terraza de Pueblo", detail: "Menús regionales en plazas pequeñas y con un servicio más pausado." },
-      { name: "Ruta de Desayuno en Panaderías", detail: "Muy útil para salir temprano hacia el siguiente pueblo." },
-    ],
-    visit: [
-      { name: "Pueblos del Luberon", detail: "Una ruta compacta para combinar arquitectura, vistas y pequeñas compras." },
-      { name: "Arles y herencia romana", detail: "Aporta una capa cultural e histórica mucho más marcada." },
-      { name: "Meseta de Valensole", detail: "Se disfruta mucho más si se visita en la temporada adecuada." },
-    ],
-  },
-  {
-    aliases: ["rome", "roma"],
-    slug: "rome",
-    countrySlug: "italy",
-    countryName: "Italia",
-    name: "Rome",
-    summary: "Historia en capas, calles con energía y días largos marcados por la comida.",
-    description:
-      "Roma es densa, ruidosa y enormemente agradecida para quien la recorre bien. Funciona para viajeros que disfrutan caminar, parar con frecuencia y dejar que las ruinas, las plazas y las cenas de barrio marquen el ritmo del día.",
-    vibe: "Grandes ciudades históricas y caminatas de todo el día",
-    bestFor: ["Historia", "Viajes a pie", "Viajes gastronómicos", "Escapadas urbanas"],
-    gallery: ["Vida en las plazas", "Ruinas antiguas", "Callejones al anochecer"],
-    stay: [
-      { name: "Centro Storico Rooms", detail: "Acceso rápido a los grandes monumentos y a los paseos de última hora." },
-      { name: "Casa Urbana en Trastevere", detail: "Noches más animadas y un barrio con mucha más textura local." },
-      { name: "Hotel de Diseño en Monti", detail: "Buen equilibrio entre estilo, gastronomía y recorridos a pie." },
-    ],
-    eat: [
-      { name: "Ruta de Cenas por Trastevere", detail: "Ideal para quienes buscan la energía social de la ciudad al final del día." },
-      { name: "Vuelta de Espresso Matinal", detail: "Paradas cortas para café antes de entrar en ruinas o museos." },
-      { name: "Parada Gastronómica en Testaccio", detail: "Comida más local y con los pies en la tierra, fuera del núcleo más turístico." },
-    ],
-    visit: [
-      { name: "Foro y Coliseo", detail: "Conviene hacerlo temprano y dejar tiempo para las colinas de alrededor." },
-      { name: "Del Panteón a Piazza Navona", detail: "Una ruta compacta llena del ritmo cotidiano de Roma." },
-      { name: "Museos Vaticanos", detail: "Merece la pena reservarle medio día completo por separado." },
-    ],
-  },
-  {
-    aliases: ["florence", "florencia"],
-    slug: "florence",
-    countrySlug: "italy",
-    countryName: "Italia",
-    name: "Florence",
-    summary: "Ciudad de arte compacta, colinas panorámicas y muy buena conexión para excursiones.",
-    description:
-      "Florencia tiene un ritmo más compacto y caminable que Roma. Permite repartir el tiempo entre monumentos renacentistas, tardes junto al río y escapadas sencillas a la Toscana.",
-    vibe: "Fines de semana centrados en arte y entrada pausada a la Toscana",
-    bestFor: ["Arte", "Recorridos a pie", "Parejas", "Acceso a la Toscana"],
-    gallery: ["Skyline del Duomo", "Atardecer en el Arno", "Detalles de taller"],
-    stay: [
-      { name: "Hotel del Barrio del Duomo", detail: "Muy cómodo para primeras visitas cortas que priorizan estar en el centro." },
-      { name: "Casa de Huéspedes en Oltrarno", detail: "Barrio con tradición artesanal y un ambiente más calmado por la tarde." },
-      { name: "Suites junto al Río", detail: "Útil cuando quieres equilibrar tiempo en ciudad con alguna excursión." },
-    ],
-    eat: [
-      { name: "Parada en Mercato Centrale", detail: "Buena variedad para grupos mixtos y comidas rápidas al mediodía." },
-      { name: "Mesas de Cena en Oltrarno", detail: "Más tranquilo que los puntos más saturados del centro." },
-      { name: "Aperitivo al Atardecer", detail: "Funciona especialmente bien si lo combinas con un mirador sobre la ciudad." },
-    ],
-    visit: [
-      { name: "Duomo y Plaza Central", detail: "El núcleo arquitectónico que mejor resume una primera visita." },
-      { name: "Visita a los Uffizi", detail: "Se disfruta más si se plantea como una visita concentrada y no exhaustiva." },
-      { name: "Piazzale Michelangelo", detail: "Un cierre muy fiable para la hora dorada." },
-    ],
-  },
-  {
-    slug: "barcelona",
-    countrySlug: "spain",
-    countryName: "España",
-    name: "Barcelona",
-    summary: "Energia de ciudad costera, arquitectura potente y exploracion guiada por barrios.",
-    description:
-      "Barcelona mezcla la facilidad de una ciudad costera con una trama urbana muy densa. Funciona especialmente bien para quienes quieren arquitectura, mercados y noches largas dentro de una ciudad compacta.",
-    vibe: "Escapadas urbanas con mucho diseño y energía mediterránea",
-    bestFor: ["Arquitectura", "Viajes de fin de semana", "Comida", "Ciudades de verano"],
-    gallery: ["Curvas de Gaudi", "Luz de playa", "Pasillos de mercado"],
-    stay: [
-      { name: "Base en Eixample", detail: "Opción equilibrada para moverse bien, comer bien y llegar con facilidad a los principales lugares." },
-      { name: "Hotel Boutique en El Born", detail: "Muy buena elección para paseos al atardecer y calles con más ambiente." },
-      { name: "Apartamento en Barceloneta", detail: "Especialmente útil si quieres dar al tiempo de playa tanta importancia como al tiempo de ciudad." },
-    ],
-    eat: [
-      { name: "Ruta de Almuerzo por Mercados", detail: "Tapas, producto fresco y platos rápidos en mercados y espacios centrales de comida." },
-      { name: "Circuito de Cenas Tardías", detail: "Barcelona recompensa a quienes retrasan el ritmo y se meten de lleno en la noche." },
-      { name: "Paradas para el Vermut", detail: "Un ritual de barrio facil de encajar entre una visita importante y la siguiente." },
-    ],
-    visit: [
-      { name: "Sagrada Família", detail: "El gran ancla de la ciudad; conviene organizar el día alrededor de ella y no meterla con prisa." },
-      { name: "Barrio Gótico", detail: "Se disfruta más caminando sin una ruta demasiado cerrada." },
-      { name: "Mirador de los Bunkers", detail: "Un cierre muy potente para ver la ciudad entera al atardecer." },
-    ],
-  },
+  createCuratedPlace({ aliases: ["paris", "parís"], slug: "paris", countrySlug: "france", countryName: "Francia", name: "Paris", summary: "Arquitectura iconica, paseos junto al Sena y una ciudad muy facil de convertir en escapada cultural.", description: "Paris funciona muy bien para una primera gran escapada urbana: barrios con personalidad, museos fuertes, calles elegantes y un ritmo que permite mezclar monumentos con pausas largas en cafe.", vibe: "Escapadas romanticas y viajes centrados en cultura", bestFor: ["Museos", "Escapadas de fin de semana", "Viajes en pareja", "Primer viaje a Europa"], cardImageUrl: parisCard, galleryImageUrls: parisGallery, stay: parisStay, eat: parisEat, visit: parisVisit, isAvailable: true }),
+  createCuratedPlace({ aliases: ["lyon", "lion"], slug: "lyon", countrySlug: "france", countryName: "Francia", name: "Lyon", summary: "Ciudad de rios, gastronomia y barrios antiguos con una escala muy comoda.", description: "Lyon es una parada muy completa para quien quiere una ciudad francesa menos obvia que Paris y mas centrada en comer bien y caminar sin tanta presion.", vibe: "Escapadas urbanas relajadas y viajes gastronomicos", bestFor: ["Gastronomia", "Fines de semana", "Paseos urbanos", "Viajes lentos"], cardImageUrl: lyonCard }),
+  createCuratedPlace({ aliases: ["marseille", "marsella"], slug: "marseille", countrySlug: "france", countryName: "Francia", name: "Marseille", summary: "Puerto, energia mediterranea y rutas costeras con mas caracter que protocolo.", description: "Marsella mezcla agua, barrio y una escena callejera mas cruda. Encaja mejor en viajes que priorizan atmosfera local frente a grandes postales perfectas.", vibe: "Escapadas costeras y viajes con pulso local", bestFor: ["Costa", "Comida informal", "Viajes de verano", "Barrios con caracter"], cardImageUrl: marseilleCard }),
+  createCuratedPlace({ aliases: ["nice", "niza"], slug: "nice", countrySlug: "france", countryName: "Francia", name: "Nice", summary: "Base luminosa para la Riviera con mar, paseos y buen encaje para itinerarios suaves.", description: "Niza funciona como una ciudad base facil para quien quiere combinar playa, casco viejo y pequenas escapadas por la costa sin complicarse demasiado.", vibe: "Escapadas costeras con ritmo sereno", bestFor: ["Mar", "Verano", "Paseos", "Viajes de varios dias"], cardImageUrl: niceCard }),
+  createCuratedPlace({ aliases: ["bordeaux", "burdeos"], slug: "bordeaux", countrySlug: "france", countryName: "Francia", name: "Bordeaux", summary: "Arquitectura uniforme, cultura del vino y una ciudad elegante pero facil de recorrer.", description: "Burdeos encaja bien en escapadas donde se quiere una ciudad pulida, paseable y con buena salida hacia bodegas o rutas regionales cercanas.", vibe: "Escapadas elegantes y viajes gastronomicos", bestFor: ["Vino", "Arquitectura", "Viajes de pareja", "Puentes cortos"], cardImageUrl: bordeauxCard }),
+  createCuratedPlace({ aliases: ["toulouse", "tolosa"], slug: "toulouse", countrySlug: "france", countryName: "Francia", name: "Toulouse", summary: "Calles de tono rosado, plazas vivas y una ciudad universitaria con ritmo amable.", description: "Toulouse tiene un punto muy agradecido para viajeros que quieren una ciudad habitada, no excesivamente turistica y con vida a distintas horas del dia.", vibe: "Escapadas urbanas de caracter local", bestFor: ["Viajes lentos", "Plazas", "Comida casual", "Atmosfera estudiantil"], cardImageUrl: toulouseCard }),
+  createCuratedPlace({ aliases: ["rome", "roma"], slug: "rome", countrySlug: "italy", countryName: "Italia", name: "Rome", summary: "Historia superpuesta, caminatas largas y una ciudad que pide tiempo y mucha pausa.", description: "Roma sigue siendo uno de los destinos mas densos para quien disfruta de caminar, comer entre visitas y dejar que la ciudad marque el orden del dia.", vibe: "Grandes ciudades historicas y dias enteros a pie", bestFor: ["Historia", "Comida", "Viajes urbanos", "Primer viaje a Italia"], cardImageUrl: romeCard }),
+  createCuratedPlace({ aliases: ["florence", "florencia"], slug: "florence", countrySlug: "italy", countryName: "Italia", name: "Florence", summary: "Arte, escala compacta y una de las bases mas faciles para una escapada cultural.", description: "Florencia recompensa mucho en poco espacio: una ciudad pequena, muy caminable y con suficiente densidad visual para llenar facilmente un fin de semana.", vibe: "Fines de semana de arte y paseos compactos", bestFor: ["Arte", "Parejas", "Museos", "Escapadas cortas"], cardImageUrl: florenceCard }),
+  createCuratedPlace({ aliases: ["milan", "milan"], slug: "milan", countrySlug: "italy", countryName: "Italia", name: "Milan", summary: "Diseno, ritmo de gran ciudad y una puerta muy practica al norte de Italia.", description: "Milan encaja mejor para quien busca mezcla de ciudad funcional, compras, arquitectura y conexiones faciles con otros tramos del viaje.", vibe: "Escapadas urbanas rapidas y viajes con foco en diseno", bestFor: ["Diseño", "Compras", "Arquitectura", "Escalas largas"], cardImageUrl: milanCard }),
+  createCuratedPlace({ aliases: ["venice", "venecia"], slug: "venice", countrySlug: "italy", countryName: "Italia", name: "Venice", summary: "Canales, callejones y una experiencia urbana que no se parece a ninguna otra.", description: "Venecia funciona mejor cuando se acepta su ritmo: caminar, perderse, parar a menudo y no intentar cubrir demasiado en poco tiempo.", vibe: "Escapadas singulares y viajes visuales", bestFor: ["Parejas", "Fotografia", "Escapadas breves", "Ciudades iconicas"], cardImageUrl: veniceCard }),
+  createCuratedPlace({ aliases: ["naples", "napoles", "nápoles"], slug: "naples", countrySlug: "italy", countryName: "Italia", name: "Naples", summary: "Ciudad intensa, gastronomia potente y mucha energia callejera.", description: "Napoles tiene una fuerza dificil de replicar: caotica, viva y perfecta para quien quiere un viaje menos pulido y con mucho mas pulso local.", vibe: "Viajes urbanos intensos y gastronomicos", bestFor: ["Pizza", "Viajes con caracter", "Costa cercana", "Historia"], cardImageUrl: naplesCard }),
+  createCuratedPlace({ aliases: ["bologna", "bolonia"], slug: "bologna", countrySlug: "italy", countryName: "Italia", name: "Bologna", summary: "Porticos, cocina muy fuerte y una ciudad amable para quien viaja despacio.", description: "Bolonia recompensa especialmente a quien organiza el viaje alrededor de la mesa y de caminatas urbanas sin demasiada presion monumental.", vibe: "Escapadas culinarias y ciudades habitables", bestFor: ["Gastronomia", "Paseos", "Viajes lentos", "Fines de semana"], cardImageUrl: bolognaCard }),
+  createCuratedPlace({ aliases: ["madrid"], slug: "madrid", countrySlug: "spain", countryName: "España", name: "Madrid", summary: "Museos grandes, barrios muy caminables y una ciudad que mejora cuando se alarga la tarde.", description: "Madrid funciona muy bien para una escapada amplia: arte, parques, terrazas, barrios con personalidad y una energia nocturna que se integra de forma natural en el viaje.", vibe: "Escapadas urbanas largas y viajes culturales con buena vida nocturna", bestFor: ["Museos", "Barrio", "Escapadas de 3 dias", "Comida y noche"], cardImageUrl: madridCard, galleryImageUrls: madridGallery, stay: madridStay, eat: madridEat, visit: madridVisit, isAvailable: true }),
+  createCuratedPlace({ aliases: ["barcelona"], slug: "barcelona", countrySlug: "spain", countryName: "España", name: "Barcelona", summary: "Ciudad costera de gran energia, arquitectura potente y barrios muy legibles.", description: "Barcelona mezcla playa, diseño, paseos urbanos y comidas largas. Encaja muy bien en viajes de verano o escapadas urbanas con buen tiempo.", vibe: "Ciudades mediterraneas con diseño y movimiento", bestFor: ["Arquitectura", "Verano", "Mercados", "Escapadas urbanas"], cardImageUrl: barcelonaCard }),
+  createCuratedPlace({ aliases: ["seville", "sevilla"], slug: "seville", countrySlug: "spain", countryName: "España", name: "Seville", summary: "Patios, calor, plazas y una ciudad muy agradecida para ver a pie con pausas largas.", description: "Sevilla gana mucho cuando el viaje se plantea a un ritmo pausado, alternando sombra, comida y recorridos cortos por barrios con mucha atmosfera.", vibe: "Escapadas culturales con ritmo sureño", bestFor: ["Primavera", "Historia", "Plazas", "Viajes tranquilos"], cardImageUrl: sevilleCard }),
+  createCuratedPlace({ aliases: ["valencia"], slug: "valencia", countrySlug: "spain", countryName: "España", name: "Valencia", summary: "Ciudad de mar, barrios amplios y un equilibrio muy util entre playa y trama urbana.", description: "Valencia es una opcion muy eficaz para quien quiere una ciudad española luminosa, menos intensa que Madrid o Barcelona y con muy buen ritmo para varios dias.", vibe: "Escapadas costeras y viajes de ritmo facil", bestFor: ["Mar", "Familias", "Paseos en bici", "Viajes de varios dias"], cardImageUrl: valenciaCard }),
+  createCuratedPlace({ aliases: ["granada"], slug: "granada", countrySlug: "spain", countryName: "España", name: "Granada", summary: "Miradores, capas historicas y una de las ciudades mas evocadoras para una escapada corta.", description: "Granada combina bien monumentalidad y vida de barrio. Es especialmente recomendable para viajes breves con foco en atmosfera y vistas.", vibe: "Escapadas historicas con mucha identidad", bestFor: ["Historia", "Miradores", "Parejas", "Escapadas de 2 dias"], cardImageUrl: granadaCard }),
+  createCuratedPlace({ aliases: ["bilbao"], slug: "bilbao", countrySlug: "spain", countryName: "España", name: "Bilbao", summary: "Arquitectura contemporanea, gastronomia fuerte y una base solida para el norte.", description: "Bilbao encaja en viajes que quieren diseño, buena comida y una ciudad compacta desde la que organizar salidas cercanas.", vibe: "Escapadas del norte con arquitectura y mesa", bestFor: ["Gastronomia", "Arquitectura", "Lluvia amable", "Fines de semana"], cardImageUrl: bilbaoCard }),
 ];
 
 export const countries: Country[] = [
   {
     slug: "france",
     name: "Francia",
-    teaser: "Ciudades románticas, escapadas reales y rutas regionales llenas de luz.",
+    teaser: "Seis ciudades para un primer recorrido entre monumentos, gastronomia y escapadas regionales.",
     places: places
       .filter((place) => place.countrySlug === "france")
       .map(({ slug, name, summary, vibe }) => ({ slug, name, summary, vibe })),
@@ -208,7 +200,7 @@ export const countries: Country[] = [
   {
     slug: "italy",
     name: "Italia",
-    teaser: "Ciudades históricas, fines de semana entre galerías y viajes guiados por la mesa.",
+    teaser: "Un catalogo compacto de ciudades historicas y escapadas urbanas muy caminables.",
     places: places
       .filter((place) => place.countrySlug === "italy")
       .map(({ slug, name, summary, vibe }) => ({ slug, name, summary, vibe })),
@@ -216,7 +208,7 @@ export const countries: Country[] = [
   {
     slug: "spain",
     name: "España",
-    teaser: "Escapadas urbanas con diseño, mercados y calidez costera.",
+    teaser: "Ciudades con barrio, clima amable y ritmos distintos entre capital, costa y sur.",
     places: places
       .filter((place) => place.countrySlug === "spain")
       .map(({ slug, name, summary, vibe }) => ({ slug, name, summary, vibe })),

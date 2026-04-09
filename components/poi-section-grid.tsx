@@ -47,21 +47,22 @@ export function PoiSectionGrid({ items }: PoiSectionGridProps) {
 
   return (
     <>
-      <div className="mt-9 grid gap-y-12 sm:grid-cols-2 sm:gap-x-10 md:grid-cols-3 lg:gap-x-16">
+      <div className="mt-8 grid gap-y-8 gap-x-5 sm:grid-cols-2 md:grid-cols-3 md:gap-x-6 lg:gap-x-8">
         {items.slice(0, 3).map((item) => (
           <button
             key={item.name}
             type="button"
             onClick={() => setActiveItem(item)}
-            className="group flex flex-col items-center text-center transition-transform duration-200 hover:-translate-y-1"
+            className="group flex w-full flex-col items-center text-center transition-transform duration-200 hover:-translate-y-1"
           >
-            <div className="relative aspect-[0.9] w-full max-w-[11rem] overflow-hidden rounded-[2px] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.16)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_rgba(10,48,120,0.18)] sm:max-w-[12rem] md:max-w-[13rem]">
+            <div className="relative aspect-[1.02] w-full overflow-hidden rounded-[2px] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.16)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_12px_24px_rgba(10,48,120,0.18)]">
               {item.imageUrl ? (
                 <Image
                   src={item.imageUrl}
                   alt={item.name}
                   fill
-                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 13rem"
+                  sizes="(max-width: 640px) calc(100vw - 2.5rem), (max-width: 768px) calc((100vw - 4rem) / 2), calc((100vw - 6rem) / 3)"
+                  quality={88}
                   className="object-cover transition duration-500 group-hover:scale-[1.03]"
                 />
               ) : (

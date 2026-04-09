@@ -1,7 +1,6 @@
 "use client";
 
 import { geoEqualEarth, geoPath } from "d3-geo";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { feature } from "topojson-client";
@@ -272,9 +271,6 @@ export function VisitedCountriesMap({
           )}
         </section>
 
-        <div className="pointer-events-none flex justify-end">
-          <Image src="/icons/chat.svg" alt="Chat" width={60} height={60} className="h-14 w-14 md:h-[60px] md:w-[60px]" />
-        </div>
       </aside>
 
       {searchOpen && !readOnly ? (

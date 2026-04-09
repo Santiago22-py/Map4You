@@ -20,6 +20,14 @@ export type SocialMessage = {
   senderUserId: string;
 };
 
+export function isValidUserId(value: string) {
+  return /^[0-9a-fA-F-]{20,}$/.test(value);
+}
+
+export function isValidRequestId(value: string) {
+  return /^[0-9a-fA-F-]{20,}$/.test(value);
+}
+
 export function getFriendshipPair(leftUserId: string, rightUserId: string) {
   return leftUserId < rightUserId ? [leftUserId, rightUserId] : [rightUserId, leftUserId];
 }

@@ -55,15 +55,16 @@ export default async function PlacePage({ params, searchParams }: PlacePageProps
           </Link>
         </div>
 
-        <section className="mt-4 grid gap-10 lg:grid-cols-[minmax(360px,420px)_minmax(0,1fr)] lg:items-start lg:gap-14">
+        <section className="mt-4 grid gap-8 lg:grid-cols-[minmax(380px,460px)_minmax(0,1fr)] lg:items-start lg:gap-12">
           <div>
-            <div className="relative aspect-[1.07] overflow-hidden rounded-[2px] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.16)]">
+            <div className="relative aspect-square overflow-hidden rounded-[2px] bg-white shadow-[0_4px_14px_rgba(0,0,0,0.16)]">
               {place.heroImageUrl ? (
                 <Image
                   src={place.heroImageUrl}
                   alt={place.title}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 420px"
+                  sizes="(max-width: 1024px) calc(100vw - 2rem), 460px"
+                  quality={90}
                   loading="eager"
                   fetchPriority="high"
                   className="object-cover"
@@ -73,14 +74,15 @@ export default async function PlacePage({ params, searchParams }: PlacePageProps
               )}
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-5">
+            <div className="mt-4 grid grid-cols-3 gap-3 md:gap-4">
               {place.galleryImages.slice(1, 4).map((image, index) => (
                 <div key={`${image}-${index}`} className="relative aspect-square overflow-hidden rounded-[2px] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)]">
                   <Image
                     src={image}
                     alt={`Galería de ${place.title} ${index + 1}`}
                     fill
-                    sizes="(max-width: 1024px) 33vw, 120px"
+                    sizes="(max-width: 1024px) calc((100vw - 3rem) / 3), 145px"
+                    quality={88}
                     className="object-cover"
                   />
                 </div>
@@ -122,9 +124,6 @@ export default async function PlacePage({ params, searchParams }: PlacePageProps
         ))}
       </div>
 
-      <div className="pointer-events-none fixed bottom-5 right-5 z-10 md:bottom-6 md:right-8">
-        <Image src="/icons/chat.svg" alt="Chat" width={60} height={60} className="h-14 w-14 md:h-[60px] md:w-[60px]" />
-      </div>
     </main>
   );
 }

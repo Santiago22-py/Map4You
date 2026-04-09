@@ -1,17 +1,17 @@
 import { redirect } from "next/navigation";
 
-import { AlbumDetailView } from "@/components/album-detail-view";
+import { AlbumPrintCheckoutView } from "@/components/album-print-checkout-view";
 import { PublicHeader } from "@/components/public-header";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { getUserTravelAlbum } from "@/lib/travel-albums-server";
 
-type AlbumDetailPageProps = {
+type AlbumPrintPageProps = {
   params: Promise<{
     albumId: string;
   }>;
 };
 
-export default async function AlbumDetailPage({ params }: AlbumDetailPageProps) {
+export default async function AlbumPrintPage({ params }: AlbumPrintPageProps) {
   const user = await getCurrentUser();
 
   if (!user) {
@@ -28,7 +28,7 @@ export default async function AlbumDetailPage({ params }: AlbumDetailPageProps) 
   return (
     <>
       <PublicHeader />
-      <AlbumDetailView album={album} checkoutHref={`/profile/albums/${album.id}/print`} />
+      <AlbumPrintCheckoutView album={album} backHref={`/profile/albums/${album.id}`} backLabel="Volver al álbum" />
     </>
   );
 }

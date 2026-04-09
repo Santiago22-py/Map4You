@@ -381,10 +381,6 @@ export function TripsView({ initialTrips }: TripsViewProps) {
       </div>
 
       {open ? <TripFormModal busy={busy} draft={draft} error={error} onChange={updateDraft} onClose={closeModal} onSubmit={saveTrip} title="Planea tu viaje" /> : null}
-
-      <div className="pointer-events-none fixed bottom-5 right-5 z-10 md:bottom-6 md:right-8">
-        <Image src="/icons/chat.svg" alt="Chat" width={60} height={60} className="h-14 w-14 md:h-[60px] md:w-[60px]" />
-      </div>
     </>
   );
 }

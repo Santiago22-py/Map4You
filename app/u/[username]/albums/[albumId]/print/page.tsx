@@ -1,18 +1,18 @@
 import { redirect } from "next/navigation";
 
-import { AlbumDetailView } from "@/components/album-detail-view";
+import { AlbumPrintCheckoutView } from "@/components/album-print-checkout-view";
 import { PublicHeader } from "@/components/public-header";
 import { getPublicTravelAlbum } from "@/lib/travel-albums-server";
 import { getProfileByUsername } from "@/lib/user-profiles-server";
 
-type PublicAlbumDetailPageProps = {
+type PublicAlbumPrintPageProps = {
   params: Promise<{
     albumId: string;
     username: string;
   }>;
 };
 
-export default async function PublicAlbumDetailPage({ params }: PublicAlbumDetailPageProps) {
+export default async function PublicAlbumPrintPage({ params }: PublicAlbumPrintPageProps) {
   const { albumId, username } = await params;
   const profile = await getProfileByUsername(username);
 
@@ -29,7 +29,7 @@ export default async function PublicAlbumDetailPage({ params }: PublicAlbumDetai
   return (
     <>
       <PublicHeader />
-      <AlbumDetailView album={album} backHref={`/u/${profile.username}`} backLabel={`Volver al perfil de @${profile.username}`} checkoutHref={`/u/${profile.username}/albums/${album.id}/print`} readOnly />
+      <AlbumPrintCheckoutView album={album} backHref={`/u/${profile.username}/albums/${album.id}`} backLabel={`Volver al álbum de @${profile.username}`} isPublicPreview />
     </>
   );
 }

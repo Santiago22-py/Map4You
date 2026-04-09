@@ -148,16 +148,6 @@ export default async function Home() {
           </div>
         </section>
 
-        <div className="pointer-events-none fixed bottom-5 right-5 z-10 md:bottom-6 md:right-8">
-          <Image
-            src="/icons/chat.svg"
-            alt="Chat"
-            width={60}
-            height={60}
-            className="motion-chat-in h-14 w-14 md:h-[60px] md:w-[60px]"
-            style={enterDelay("920ms")}
-          />
-        </div>
       </div>
     </main>
   );

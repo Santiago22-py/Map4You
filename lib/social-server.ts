@@ -68,6 +68,10 @@ async function getProfilesByUserIds(userIds: string[]) {
   return new Map(data.map((row) => [row.user_id, mapSocialProfile(row as ProfileRow, supabase)]));
 }
 
+function buildSafeProfileSearchPattern(query: string) {
+  return `%${query.replace(/[\%_]/g, "").trim()}%`;
+}
+
 async function getFriendRequestRows(userId: string): Promise<FriendRequestRow[]> {
   const supabase = createSupabaseAdminClient();
 
@@ -180,18 +184,39 @@ export async function searchProfilesToFriend(userId: string, query: string): Pro
   const friends = await getUserFriends(userId);
   const requests = await getUserFriendRequests(userId);
   const blockedIds = new Set([userId, ...friends.map((friend) => friend.userId), ...requests.map((request) => request.userId)]);
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("user_id, username, display_name, avatar_path")
-    .or(`username.ilike.%${normalizedQuery}%,display_name.ilike.%${normalizedQuery}%`)
-    .limit(12);
+  const safePattern = buildSafeProfileSearchPattern(normalizedQuery);
+  const [usernameResult, displayNameResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("user_id, username, display_name, avatar_path")
+      .ilike("username", safePattern)
+      .limit(12),
+    supabase
+      .from("profiles")
+      .select("user_id, username, display_name, avatar_path")
+      .ilike("display_name", safePattern)
+      .limit(12),
+  ]);
 
-  if (error || !data) {
+  if (usernameResult.error && displayNameResult.error) {
     return [];
   }
 
-  return (data as ProfileRow[])
+  const mergedProfiles = new Map<string, ProfileRow>();
+
+  for (const row of (usernameResult.data as ProfileRow[] | null) ?? []) {
+    mergedProfiles.set(row.user_id, row);
+  }
+
+  for (const row of (displayNameResult.data as ProfileRow[] | null) ?? []) {
+    if (!mergedProfiles.has(row.user_id)) {
+      mergedProfiles.set(row.user_id, row);
+    }
+  }
+
+  return Array.from(mergedProfiles.values())
     .filter((profile) => !blockedIds.has(profile.user_id))
+    .slice(0, 12)
     .map((profile) => mapSocialProfile(profile, supabase));
 }
 
@@ -383,6 +408,10 @@ export async function sendMessageToFriend(userId: string, friendUserId: string, 
 
   if (!message) {
     throw new Error("Escribe un mensaje antes de enviarlo.");
+  }
+
+  if (message.length > 2000) {
+    throw new Error("El mensaje es demasiado largo.");
   }
 
   if (!isMessageEncryptionConfigured()) {

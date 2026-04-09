@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Sora } from "next/font/google";
+
+import { ChatbotLauncher } from "@/components/chatbot-launcher";
 import "./globals.css";
 
 const sora = Sora({
@@ -28,7 +30,10 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${sora.variable} ${manrope.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ChatbotLauncher />
+      </body>
     </html>
   );
 }

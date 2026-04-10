@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { formatMessageTime, getFriendCountLabel, getFriendRequestCountLabel, type FriendRequestSummary, type FriendSummary, type SocialMessage, type SocialProfile } from "@/lib/social";
+import { formatMessageDayLabel, formatMessageTime, getFriendCountLabel, getFriendRequestCountLabel, type FriendRequestSummary, type FriendSummary, type SocialMessage, type SocialProfile, type SocialUnreadSummary } from "@/lib/social";
+import { getSocialUnreadSeenMap, getUnreadFriendIds, markFriendConversationSeen } from "@/lib/social-unread";
 
 type SocialPanelProps = {
   currentUserId: string;
@@ -26,6 +27,16 @@ function ProfileAvatar({ profile, size = 42 }: { profile: Pick<SocialProfile, "a
   );
 }
 
+function getMessageDayKey(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
 export function SocialPanel({ currentUserId, initialFriends, initialRequests, onClose, onFriendCountChange }: SocialPanelProps) {
   const [friends, setFriends] = useState(initialFriends);
   const [activeFriendId, setActiveFriendId] = useState(initialFriends[0]?.userId ?? null);
@@ -39,11 +50,13 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [encryptionConfigured, setEncryptionConfigured] = useState(true);
+  const [unreadFriendIds, setUnreadFriendIds] = useState<string[]>([]);
 
   const activeFriend = friends.find((friend) => friend.userId === activeFriendId) ?? null;
   const incomingRequests = requests.filter((request) => request.direction === "incoming");
   const outgoingRequests = requests.filter((request) => request.direction === "outgoing");
   const visibleMessages = activeFriendId ? messages : [];
+  const unreadFriendIdSet = new Set(unreadFriendIds);
 
   useEffect(() => {
     onFriendCountChange(friends.length);
@@ -101,6 +114,12 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
 
         setEncryptionConfigured(payload.encryptionConfigured ?? true);
         setMessages(payload.messages ?? []);
+
+        const latestIncomingMessage = (payload.messages ?? []).findLast((message) => message.senderUserId === activeFriendId);
+
+        if (latestIncomingMessage) {
+          markFriendConversationSeen(currentUserId, activeFriendId, latestIncomingMessage.createdAt);
+        }
       })
       .catch((caughtError: unknown) => {
         if (controller.signal.aborted) {
@@ -118,7 +137,43 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
       });
 
     return () => controller.abort();
-  }, [activeFriendId]);
+  }, [activeFriendId, currentUserId]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function syncUnreadState() {
+      try {
+        const response = await fetch("/api/social/unread-summary", { cache: "no-store" });
+        const payload = (await response.json()) as { summaries?: SocialUnreadSummary[] };
+
+        if (!response.ok || !active) {
+          return;
+        }
+
+        setUnreadFriendIds(getUnreadFriendIds(payload.summaries ?? [], getSocialUnreadSeenMap(currentUserId)));
+      } catch {
+        if (active) {
+          setUnreadFriendIds([]);
+        }
+      }
+    }
+
+    void syncUnreadState();
+
+    const handleUnreadUpdate = () => {
+      void syncUnreadState();
+    };
+
+    window.addEventListener("storage", handleUnreadUpdate);
+    window.addEventListener("social-unread-updated", handleUnreadUpdate);
+
+    return () => {
+      active = false;
+      window.removeEventListener("storage", handleUnreadUpdate);
+      window.removeEventListener("social-unread-updated", handleUnreadUpdate);
+    };
+  }, [currentUserId]);
 
   async function handleAddFriend(profile: SocialProfile) {
     setError(null);
@@ -238,7 +293,7 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
   }
 
   return (
-    <section className="flex max-h-[calc(100dvh-1.5rem)] min-h-[min(42rem,calc(100dvh-1.5rem))] flex-col overflow-hidden rounded-[1.8rem] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8 lg:max-h-none lg:min-h-0">
+    <section className="flex h-[min(42rem,calc(100dvh-1.5rem))] max-h-[calc(100dvh-1.5rem)] flex-col overflow-hidden rounded-[1.8rem] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.1)] ring-1 ring-black/8 lg:h-[min(59rem,calc(100dvh-2rem))] lg:max-h-[calc(100dvh-2rem)]">
       <div className="flex flex-wrap items-center justify-between gap-3 bg-[#d78a50] px-4 py-4 text-white sm:px-6 sm:py-5">
         <div className="flex items-center gap-3">
           <Image src="/icons/social-blue.svg" alt="Amigos" width={30} height={30} className="h-9 w-9 rounded-full bg-white p-1.5" />
@@ -259,8 +314,8 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 border-t border-black/15 overflow-y-auto lg:grid-cols-[minmax(15rem,16.5rem)_minmax(0,1fr)] lg:overflow-hidden">
-        <aside className="border-b border-black/15 bg-[#f8f4ef] p-4 sm:p-5 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+      <div className="grid min-h-0 flex-1 border-t border-black/15 overflow-hidden lg:grid-cols-[minmax(15rem,16.5rem)_minmax(0,1fr)]">
+        <aside className="overflow-y-auto border-b border-black/15 bg-[#f8f4ef] p-4 sm:p-5 lg:border-b-0 lg:border-r">
           <label className="sr-only" htmlFor="friend-search">Buscar amigos</label>
           <input
             id="friend-search"
@@ -376,7 +431,12 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
                     className="min-w-0 flex-1 text-left"
                   >
                     <p className="truncate text-sm font-semibold text-brand-burnt">{friend.displayName}</p>
-                    <p className="truncate text-xs text-black/55">@{friend.username}</p>
+                    <div className="flex items-center gap-2">
+                      {unreadFriendIdSet.has(friend.userId) ? <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#d71c1c]" /> : null}
+                      <p className={`truncate text-xs ${unreadFriendIdSet.has(friend.userId) ? "font-semibold text-[#d71c1c]" : "text-black/55"}`}>
+                        {unreadFriendIdSet.has(friend.userId) ? `Nuevo mensaje de @${friend.username}` : `@${friend.username}`}
+                      </p>
+                    </div>
                   </button>
                 </div>
               ))
@@ -386,7 +446,7 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
           </div>
         </aside>
 
-        <div className="flex min-h-[26rem] flex-col bg-white lg:min-h-[44rem]">
+        <div className="flex h-full min-h-0 flex-col bg-white">
           {activeFriend ? (
             <>
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-black/10 px-4 py-4 sm:px-6">
@@ -403,26 +463,40 @@ export function SocialPanel({ currentUserId, initialFriends, initialRequests, on
                 </button>
               </div>
 
-              <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
                 {loadingMessages ? <p className="text-sm text-black/55">Cargando conversación...</p> : null}
                 {!loadingMessages && !visibleMessages.length && encryptionConfigured ? <p className="text-sm leading-7 text-black/55">Todavía no habéis hablado. Envía el primer mensaje cuando quieras.</p> : null}
                 {!encryptionConfigured ? <p className="text-sm leading-7 text-red-700">Configura `MESSAGE_ENCRYPTION_KEY` en el servidor para guardar y leer mensajes cifrados.</p> : null}
 
-                {visibleMessages.map((message) => {
+                {visibleMessages.map((message, index) => {
                   const ownMessage = message.senderUserId === currentUserId;
+                  const previousMessage = visibleMessages[index - 1] ?? null;
+                  const showDaySeparator = !previousMessage || getMessageDayKey(previousMessage.createdAt) !== getMessageDayKey(message.createdAt);
 
                   return (
-                    <div key={message.id} className={`flex ${ownMessage ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[88%] rounded-[1.4rem] px-4 py-4 sm:max-w-[70%] sm:px-6 sm:py-5 ${ownMessage ? "bg-[#d69b71] text-[#4c2208]" : "bg-[#f7efe8] text-brand-ink"}`}>
-                        <p className="text-[1.05rem] font-semibold leading-8">{message.content}</p>
-                        <p className="mt-2 text-right text-sm text-black/65">{formatMessageTime(message.createdAt)}</p>
+                    <div key={message.id}>
+                      {showDaySeparator ? (
+                        <div className="mb-4 flex items-center gap-3 pt-2">
+                          <div className="h-px flex-1 bg-black/10" />
+                          <p className="shrink-0 rounded-full bg-[#fbf7f3] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-black/45">
+                            {formatMessageDayLabel(message.createdAt)}
+                          </p>
+                          <div className="h-px flex-1 bg-black/10" />
+                        </div>
+                      ) : null}
+
+                      <div className={`flex ${ownMessage ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[88%] rounded-[1.4rem] px-4 py-4 sm:max-w-[70%] sm:px-6 sm:py-5 ${ownMessage ? "bg-[#d69b71] text-[#4c2208]" : "bg-[#f7efe8] text-brand-ink"}`}>
+                          <p className="text-[1.05rem] font-semibold leading-8">{message.content}</p>
+                          <p className="mt-2 text-right text-sm text-black/65">{formatMessageTime(message.createdAt)}</p>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              <div className="border-t border-black/10 px-4 py-4 sm:px-6 sm:py-5">
+              <div className="shrink-0 border-t border-black/10 px-4 py-4 sm:px-6 sm:py-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <input
                     value={messageDraft}

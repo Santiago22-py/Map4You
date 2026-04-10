@@ -31,7 +31,7 @@ export default async function Home() {
             />
           </Link>
 
-          <HeaderShortcuts currentUser={Boolean(currentUser)} authEnabled={authEnabled} authWarning={authWarning} animated />
+          <HeaderShortcuts currentUser={Boolean(currentUser)} currentUserId={currentUser?.id ?? null} authEnabled={authEnabled} authWarning={authWarning} animated />
         </header>
 
         <div

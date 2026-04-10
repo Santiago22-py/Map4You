@@ -25,7 +25,7 @@ export async function PublicHeader() {
           />
         </Link>
 
-        <HeaderShortcuts currentUser={Boolean(currentUser)} authEnabled={authEnabled} authWarning={authWarning} />
+        <HeaderShortcuts currentUser={Boolean(currentUser)} currentUserId={currentUser?.id ?? null} authEnabled={authEnabled} authWarning={authWarning} />
       </header>
 
       <div className="mt-6 w-full border-t border-brand-navy/25 shadow-[0_2px_10px_rgba(10,48,120,0.09)] md:mt-8" />

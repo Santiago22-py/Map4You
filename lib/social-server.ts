@@ -1,7 +1,7 @@
 import { decryptMessageContent, encryptMessageContent, isMessageEncryptionConfigured } from "@/lib/message-crypto";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getProfileImagePublicUrl } from "@/lib/user-profiles";
-import { type FriendRequestSummary, type FriendSummary, getFriendshipPair, type SocialMessage, type SocialProfile } from "@/lib/social";
+import { type FriendRequestSummary, type FriendSummary, getFriendshipPair, type SocialMessage, type SocialProfile, type SocialUnreadSummary } from "@/lib/social";
 
 type FriendshipRow = {
   created_at: string;
@@ -16,6 +16,11 @@ type MessageRow = {
   created_at: string;
   id: string;
   recipient_user_id: string;
+  sender_user_id: string;
+};
+
+type MessageUnreadRow = {
+  created_at: string;
   sender_user_id: string;
 };
 
@@ -401,6 +406,51 @@ export async function getConversation(userId: string, friendUserId: string): Pro
   }
 
   return (data as MessageRow[]).map(mapMessage);
+}
+
+export async function getUnreadMessageSummaries(userId: string): Promise<SocialUnreadSummary[]> {
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const friends = await getUserFriends(userId);
+
+  if (!friends.length) {
+    return [];
+  }
+
+  const friendIds = friends.map((friend) => friend.userId);
+  const { data, error } = await supabase
+    .from("user_messages")
+    .select("sender_user_id, created_at")
+    .eq("recipient_user_id", userId)
+    .in("sender_user_id", friendIds)
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  if (error || !data) {
+    return [];
+  }
+
+  const latestBySender = new Map<string, string>();
+
+  for (const row of data as MessageUnreadRow[]) {
+    if (!latestBySender.has(row.sender_user_id)) {
+      latestBySender.set(row.sender_user_id, row.created_at);
+    }
+  }
+
+  return friends
+    .filter((friend) => latestBySender.has(friend.userId))
+    .map((friend) => ({
+      avatarUrl: friend.avatarUrl,
+      displayName: friend.displayName,
+      latestIncomingMessageAt: latestBySender.get(friend.userId)!,
+      userId: friend.userId,
+      username: friend.username,
+    } satisfies SocialUnreadSummary));
 }
 
 export async function sendMessageToFriend(userId: string, friendUserId: string, content: string): Promise<SocialMessage> {

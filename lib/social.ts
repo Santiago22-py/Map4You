@@ -20,6 +20,10 @@ export type SocialMessage = {
   senderUserId: string;
 };
 
+export type SocialUnreadSummary = SocialProfile & {
+  latestIncomingMessageAt: string;
+};
+
 export function isValidUserId(value: string) {
   return /^[0-9a-fA-F-]{20,}$/.test(value);
 }
@@ -50,5 +54,33 @@ export function formatMessageTime(value: string) {
   return new Intl.DateTimeFormat("es-ES", {
     hour: "2-digit",
     minute: "2-digit",
+  }).format(date);
+}
+
+export function formatMessageDayLabel(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const messageDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (messageDay.getTime() === today.getTime()) {
+    return "Hoy";
+  }
+
+  if (messageDay.getTime() === yesterday.getTime()) {
+    return "Ayer";
+  }
+
+  return new Intl.DateTimeFormat("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: messageDay.getFullYear() === today.getFullYear() ? undefined : "numeric",
   }).format(date);
 }

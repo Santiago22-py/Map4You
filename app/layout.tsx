@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Manrope, Sora } from "next/font/google";
 
 import { ChatbotLauncher } from "@/components/chatbot-launcher";
+import { CookieBanner } from "@/components/cookie-banner";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 const sora = Sora({
@@ -32,6 +34,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {children}
+        <SiteFooter />
+        <CookieBanner />
         <ChatbotLauncher />
       </body>
     </html>

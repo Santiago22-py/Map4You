@@ -6,7 +6,7 @@ export default function PoliticaPrivacidadPage() {
   return (
     <main className="page-shell py-12 max-w-3xl mx-auto">
       <div className="mb-8 rounded-lg border border-amber-400 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-        <strong>ADVERTENCIA PROYECTO ACADÉMICO:</strong> Este Sitio Web (Map4You) ha sido creado con fines educativos. No constituye una actividad comercial real. Los productos mostrados no están a la venta de manera real, no se procesarán pedidos ni se realizarán cobros. Cualquier formulario de registro o compra tiene unicamente la función de simular la experiencia del usuario para la evaluación académica.
+        <strong>ADVERTENCIA PROYECTO ACADÉMICO:</strong> Este Sitio Web (Map4You) ha sido creado con fines educativos. No constituye una actividad comercial real. Los productos mostrados no están a la venta de manera real, no se procesarán pedidos ni se realizarán cobros. Cualquier formulario de registro o compra tiene únicamente la función de simular la experiencia del usuario para la evaluación académica.
       </div>
       <h1 className="text-3xl font-bold mb-8">POLÍTICA DE PRIVACIDAD DEL SITIO WEB</h1>
       <div className="prose prose-sm max-w-none space-y-4 text-foreground">

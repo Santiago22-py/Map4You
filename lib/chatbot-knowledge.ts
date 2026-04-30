@@ -1,5 +1,5 @@
 import { countries, getPlaceBySlug } from "@/lib/public-data";
-import { subscriptionPlans, esimDestinations, souvenirCollections, formatEuro } from "@/lib/fake-store";
+import { subscriptionPlans, esimPlans, souvenirCollections, formatEuro } from "@/lib/fake-store";
 
 export type ChatSuggestion = {
   id: string;
@@ -61,22 +61,18 @@ function buildSubscriptionPlansSummary() {
 }
 
 function buildEsimSummary() {
-  const destList = esimDestinations.map((dest) => {
-    const price = dest.basePricePerGbDayEuro.toFixed(2).replace(".", ",");
-    return `${dest.name} (desde ${price} €/GB/día)`;
+  const planList = esimPlans.map((plan) => {
+    return `${plan.title} (${formatEuro(plan.priceEuro)}): ${plan.dataLabel} durante ${plan.durationLabel}`;
   });
-  return `eSIM: se pueden configurar eSIMs de datos para ${esimDestinations.length} destinos: ${destList.join(", ")}. El precio final depende de los GB diarios elegidos y la duración del viaje; hay descuentos para estancias de 10 o más días. Ruta: /tienda/esim.`;
+  return `eSIM: hay ${esimPlans.length} planes de conectividad de precio fijo: ${planList.join(". ")}. Activación mediante código QR, sin tarjeta física ni permanencia. Ruta: /tienda/esim.`;
 }
 
 function buildSouvenirsSummary() {
-  const colList = souvenirCollections.map((col) => {
-    const prices = col.products.map((p) => p.priceEuro);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const count = col.products.length;
-    return `${col.name} (${count} producto${count !== 1 ? "s" : ""}, desde ${formatEuro(min)} hasta ${formatEuro(max)})`;
+  const packList = souvenirCollections.map((col) => {
+    const product = col.products[0];
+    return `${col.name} (${formatEuro(product?.priceEuro ?? 0)}): ${product?.description ?? ""}`;
   });
-  return `Souvenirs: hay colecciones de recuerdos de ${souvenirCollections.length} destinos: ${colList.join(", ")}. Son productos físicos de demostración. Ruta: /tienda/souvenirs.`;
+  return `Souvenirs: hay ${souvenirCollections.length} packs de recuerdos. ${packList.join(". ")}. Son productos de demostración. Ruta: /tienda/souvenirs.`;
 }
 
 export function getChatbotKnowledgeBase() {

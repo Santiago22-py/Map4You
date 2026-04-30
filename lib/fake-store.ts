@@ -32,6 +32,17 @@ export type EsimDestination = {
   gbPerDayOptions: number[];
 };
 
+export type EsimPlan = {
+  slug: string;
+  title: string;
+  imageUrl: string;
+  blurb: string;
+  dataLabel: string;
+  durationLabel: string;
+  features: string[];
+  priceEuro: number;
+};
+
 export type SouvenirProduct = {
   id: string;
   name: string;
@@ -133,6 +144,57 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
 ];
 
+export const esimPlans: EsimPlan[] = [
+  {
+    slug: "basico",
+    title: "Plan Básico",
+    imageUrl: "/images/Monetize/EsimPage/Europa.png",
+    blurb: "Ideal para escapadas cortas o puentes. Datos suficientes para navegar sin preocupaciones.",
+    dataLabel: "5 GB",
+    durationLabel: "7 días",
+    features: [
+      "5 GB de datos durante 7 días",
+      "Activación mediante código QR",
+      "Mantén tu línea principal activa para llamadas y WhatsApp",
+      "Sin permanencia",
+      "Compatible con iPhone y Android",
+    ],
+    priceEuro: 9,
+  },
+  {
+    slug: "estandar",
+    title: "Plan Estándar",
+    imageUrl: "/images/Monetize/EsimPage/Mundo.png",
+    blurb: "Perfecto para vacaciones de duración media. Navega sin límites durante dos semanas.",
+    dataLabel: "15-20 GB",
+    durationLabel: "15 días",
+    features: [
+      "Hasta 20 GB de datos durante 15 días",
+      "Activación mediante código QR",
+      "Cobertura multired con cambio automático entre redes locales",
+      "Compartir datos permitido",
+      "Sin tarjeta física ni permanencia",
+    ],
+    priceEuro: 18,
+  },
+  {
+    slug: "premium",
+    title: "Plan Premium",
+    imageUrl: "/images/Monetize/EsimPage/Brasil.png",
+    blurb: "La opción más completa para viajes largos. Datos ilimitados durante un mes entero.",
+    dataLabel: "Ilimitados",
+    durationLabel: "30 días",
+    features: [
+      "Datos ilimitados durante 30 días",
+      "Activación mediante código QR",
+      "Red 4G/5G en más de 110 destinos",
+      "Panel de consumo demo incluido",
+      "Sin permanencia ni tarjeta física",
+    ],
+    priceEuro: 35,
+  },
+];
+
 export const esimDestinations: EsimDestination[] = [
   {
     slug: "mundo",
@@ -203,136 +265,50 @@ export const esimDestinations: EsimDestination[] = [
 
 export const souvenirCollections: SouvenirCollection[] = [
   {
-    slug: "espana",
-    name: "España",
+    slug: "esencial",
+    name: "Pack Esencial",
     heroImageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir1.png"),
-    summary: "Cerámica, ilustraciones, sabores y objetos pequeños que convierten un itinerario por España en recuerdos fáciles de regalar.",
-    teaser: "Recuerdos de España",
+    summary: "Lo justo para recordar el viaje. Un imán de diseño exclusivo, un llavero Map4You y dos postales personalizadas con tus destinos favoritos.",
+    teaser: "Pack Esencial",
     products: [
       {
-        id: "espana-azulejo",
-        name: "Cuencos de cerámica pintados a mano",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/EspanaSouveniurs/SouvenirSpain1.jpg"),
-        priceEuro: 14,
-        description: "Piezas artesanales llenas de color, típicas de mercados locales.",
-      },
-      {
-        id: "espana-vasos",
-        name: "Alpargatas tradicionales",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/EspanaSouveniurs/SouvenirSpain2.jpg"),
-        priceEuro: 22,
-        description: "Calzado ligero y cómodo, un clásico del verano mediterráneo.",
-      },
-      {
-        id: "espana-imanes",
-        name: "Imanes de Sevilla hechos a mano",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/EspanaSouveniurs/SouvenirSpain3.jpg"),
-        priceEuro: 9,
-        description: "Recuerdos coloridos con iconos típicos de la ciudad.",
-      },
-      {
-        id: "espana-poster",
-        name: "Cerámica rústica tradicional",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/EspanaSouveniurs/SouvenirSpain4.avif"),
-        priceEuro: 18,
-        description: "Utensilios de barro ideales para cocina o decoración.",
-      },
-      {
-        id: "espana-bolsa",
-        name: "Jamón ibérico y embutidos",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/EspanaSouveniurs/SouvenirSpain5.jpg"),
-        priceEuro: 12,
-        description: "Selección gourmet de sabores tradicionales españoles.",
-      },
-      {
-        id: "espana-libreta",
-        name: "Abanicos artesanales",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/EspanaSouveniurs/SouvenirSpain6.jpg"),
-        priceEuro: 11,
-        description: "Accesorio elegante y práctico, típico de la cultura española.",
-      },
-      {
-        id: "espana-postales",
-        name: "Delicias gourmet en conserva",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/EspanaSouveniurs/SouvenirSpain7.jpg"),
-        priceEuro: 10,
-        description: "Pequeños sabores locales perfectos para degustar o regalar.",
-      },
-      {
-        id: "espana-cesta",
-        name: "Figura decorativa de toro",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/EspanaSouveniurs/SouvenirSpain8.jpg"),
-        priceEuro: 26,
-        description: "Pieza colorida inspirada en la tradición y cultura española.",
+        id: "pack-esencial",
+        name: "Pack Esencial",
+        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir1.png"),
+        priceEuro: 12.50,
+        description: "1 imán de diseño exclusivo + 1 llavero Map4You + 2 postales personalizadas.",
       },
     ],
   },
   {
-    slug: "portugal",
-    name: "Portugal",
+    slug: "explorador",
+    name: "Pack Explorador",
     heroImageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir2.png"),
-    summary: "Una selección de piezas coloridas y objetos pequeños con espíritu atlántico.",
-    teaser: "Recuerdos de Portugal",
+    summary: "Para quienes quieren ir un paso más allá. Una camiseta de diseño del país o ciudad, una taza de cerámica y un imán de recuerdo.",
+    teaser: "Pack Explorador",
     products: [
       {
-        id: "portugal-ceramica",
-        name: "Cerámica atlántica",
+        id: "pack-explorador",
+        name: "Pack Explorador",
         imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir2.png"),
-        priceEuro: 19,
-        description: "Colores intensos y acabado artesanal para recordar tu ruta.",
-      },
-      {
-        id: "portugal-pack",
-        name: "Pack postal costero",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir1.png"),
-        priceEuro: 13,
-        description: "Un recuerdo ligero para compartir después del viaje.",
+        priceEuro: 29,
+        description: "1 camiseta de diseño (país/ciudad) + 1 taza de cerámica + 1 imán.",
       },
     ],
   },
   {
-    slug: "brasil",
-    name: "Brasil",
+    slug: "premium",
+    name: "Pack Premium",
     heroImageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir3.png"),
-    summary: "Texturas, color y objetos con estética tropical para una colección más viva.",
-    teaser: "Recuerdos de Brasil",
+    summary: "La experiencia completa del viajero. Una tote bag orgánica, camiseta, libreta de viaje Map4You y un pack de pegatinas de los sitios visitados.",
+    teaser: "Pack Premium",
     products: [
       {
-        id: "brasil-kit",
-        name: "Kit de mesa tropical",
+        id: "pack-premium",
+        name: "Pack Premium",
         imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir3.png"),
-        priceEuro: 21,
-        description: "Piezas ligeras para revivir la parte más cálida del viaje.",
-      },
-      {
-        id: "brasil-imanes",
-        name: "Imanes color mercado",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir4.png"),
-        priceEuro: 9,
-        description: "Pequeño set con mucho color y fácil de regalar.",
-      },
-    ],
-  },
-  {
-    slug: "japon",
-    name: "Japón",
-    heroImageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir5.jpg"),
-    summary: "Piezas visuales, minimalistas y ordenadas para una colección más serena.",
-    teaser: "Recuerdos de Japón",
-    products: [
-      {
-        id: "japon-lamina",
-        name: "Lámina de estación",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir5.jpg"),
-        priceEuro: 17,
-        description: "Impresión cuidada para una pared o escritorio de viaje.",
-      },
-      {
-        id: "japon-pack",
-        name: "Pack de recuerdos urbanos",
-        imageUrl: withSouvenirImageVersion("/images/Monetize/SouvenirsPage/Souvenir1.png"),
-        priceEuro: 15,
-        description: "Selección compacta para regalar sin ocupar espacio.",
+        priceEuro: 48,
+        description: "1 tote bag orgánica + 1 camiseta + 1 libreta de viaje Map4You + 1 pack de pegatinas de los sitios visitados.",
       },
     ],
   },
@@ -348,6 +324,10 @@ export function formatEuro(value: number) {
 
 export function getEsimDestination(slug: string) {
   return esimDestinations.find((destination) => destination.slug === slug) ?? null;
+}
+
+export function getEsimPlan(slug: string) {
+  return esimPlans.find((plan) => plan.slug === slug) ?? null;
 }
 
 export function getSubscriptionPlan(planId: string) {

@@ -5,22 +5,16 @@ import { useState } from "react";
 
 import { StoreAddToCartButton } from "@/components/store-add-to-cart-button";
 import { StoreCartLink } from "@/components/store-cart-link";
-import { calculateEsimQuote, clampEsimGbPerDay, formatEuro, type EsimDestination } from "@/lib/fake-store";
+import { esimPlans, formatEuro, type EsimDestination, type EsimPlan } from "@/lib/fake-store";
 
 type StoreEsimConfiguratorProps = {
   destination: EsimDestination;
-  initialGbPerDay: number;
-  initialStartDate: string;
-  initialEndDate: string;
+  initialPlanId: EsimPlan["id"];
 };
 
-export function StoreEsimConfigurator({ destination, initialGbPerDay, initialStartDate, initialEndDate }: StoreEsimConfiguratorProps) {
-  const [startDate, setStartDate] = useState(initialStartDate);
-  const [endDate, setEndDate] = useState(initialEndDate);
-  const [selectedGbPerDay, setSelectedGbPerDay] = useState(initialGbPerDay);
-
-  const safeGbPerDay = clampEsimGbPerDay(destination, selectedGbPerDay);
-  const quote = calculateEsimQuote(destination, safeGbPerDay, startDate, endDate);
+export function StoreEsimConfigurator({ destination, initialPlanId }: StoreEsimConfiguratorProps) {
+  const [selectedPlanId, setSelectedPlanId] = useState<EsimPlan["id"]>(initialPlanId);
+  const selectedPlan = esimPlans.find((p) => p.id === selectedPlanId) ?? esimPlans[1];
 
   return (
     <>
@@ -32,25 +26,27 @@ export function StoreEsimConfigurator({ destination, initialGbPerDay, initialSta
           </div>
         </div>
 
-        <div className="grid gap-5 text-left">
-          <label className="space-y-2 text-sm font-semibold uppercase tracking-[0.08em] text-black/55">
-            <span>Fecha inicio</span>
-            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="w-full rounded-[1rem] border border-brand-orange bg-white px-4 py-3 text-base font-medium text-brand-ink outline-none focus:ring-2 focus:ring-brand-orange/16" />
-          </label>
-          <label className="space-y-2 text-sm font-semibold uppercase tracking-[0.08em] text-black/55">
-            <span>Fecha fin</span>
-            <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} className="w-full rounded-[1rem] border border-brand-orange bg-white px-4 py-3 text-base font-medium text-brand-ink outline-none focus:ring-2 focus:ring-brand-orange/16" />
-          </label>
-          <label className="space-y-2 text-sm font-semibold uppercase tracking-[0.08em] text-black/55">
-            <span>GB por día</span>
-            <select value={String(safeGbPerDay)} onChange={(event) => setSelectedGbPerDay(Number(event.target.value))} className="w-full rounded-[1rem] border border-brand-orange bg-white px-4 py-3 text-base font-medium text-brand-ink outline-none focus:ring-2 focus:ring-brand-orange/16">
-              {destination.gbPerDayOptions.map((option) => (
-                <option key={`${destination.slug}-${option}`} value={option}>
-                  {option} GB por día
-                </option>
-              ))}
-            </select>
-          </label>
+        <div className="space-y-3">
+          <p className="text-sm font-semibold uppercase tracking-[0.08em] text-black/55">Elige tu plan</p>
+          <div className="grid gap-3">
+            {esimPlans.map((plan) => {
+              const isSelected = plan.id === selectedPlanId;
+              return (
+                <button
+                  key={plan.id}
+                  type="button"
+                  onClick={() => setSelectedPlanId(plan.id)}
+                  className={`flex items-center justify-between gap-4 rounded-[1rem] border px-5 py-4 text-left transition ${isSelected ? "border-brand-orange bg-[#fff6f1] ring-2 ring-brand-orange/20" : "border-black/12 bg-white hover:border-brand-orange/50"}`}
+                >
+                  <div className="space-y-0.5">
+                    <p className={`text-base font-semibold ${isSelected ? "text-brand-burnt" : "text-brand-ink"}`}>{plan.name}</p>
+                    <p className="text-sm text-black/60">{plan.duration} · {plan.data}</p>
+                  </div>
+                  <p className={`shrink-0 text-[1.3rem] font-semibold ${isSelected ? "text-brand-burnt" : "text-brand-navy"}`}>{formatEuro(plan.priceEuro)}</p>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -74,7 +70,7 @@ export function StoreEsimConfigurator({ destination, initialGbPerDay, initialSta
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-semibold uppercase tracking-[0.08em] text-brand-burnt/80">Total</p>
-              <p className="text-[1.7rem] font-semibold text-brand-burnt">{formatEuro(quote.total)}</p>
+              <p className="text-[1.7rem] font-semibold text-brand-burnt">{formatEuro(selectedPlan.priceEuro)}</p>
             </div>
             <StoreCartLink />
           </div>
@@ -88,12 +84,12 @@ export function StoreEsimConfigurator({ destination, initialGbPerDay, initialSta
             </div>
 
             <div>
-              <p className="text-[1.45rem] font-semibold text-brand-ink">Elección de GB</p>
-              <p className="mt-2 text-[1rem] leading-8 text-black/72">Cada destino tiene una tarifa demo distinta por GB diario. El precio final se recalcula automáticamente al ajustar fechas y consumo diario.</p>
+              <p className="text-[1.45rem] font-semibold text-brand-ink">{selectedPlan.name}</p>
+              <p className="mt-2 text-[1rem] leading-8 text-black/72">{selectedPlan.description}</p>
               <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold uppercase tracking-[0.08em] text-brand-navy/70">
-                <span className="rounded-full bg-white px-4 py-2 ring-1 ring-black/8">{safeGbPerDay} GB por día</span>
-                <span className="rounded-full bg-white px-4 py-2 ring-1 ring-black/8">{quote.durationDays} días</span>
-                <span className="rounded-full bg-white px-4 py-2 ring-1 ring-black/8">{quote.totalDataGb} GB en total</span>
+                <span className="rounded-full bg-white px-4 py-2 ring-1 ring-black/8">{selectedPlan.data}</span>
+                <span className="rounded-full bg-white px-4 py-2 ring-1 ring-black/8">{selectedPlan.duration}</span>
+                <span className="rounded-full bg-white px-4 py-2 ring-1 ring-black/8">{formatEuro(selectedPlan.priceEuro)}</span>
               </div>
             </div>
 
@@ -117,41 +113,33 @@ export function StoreEsimConfigurator({ destination, initialGbPerDay, initialSta
                 <span className="font-semibold text-brand-navy">{destination.name}</span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span>Paquete</span>
-                <span className="font-semibold text-brand-navy">{safeGbPerDay} GB/día</span>
+                <span>Plan</span>
+                <span className="font-semibold text-brand-navy">{selectedPlan.name}</span>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <span>Duración</span>
-                <span className="font-semibold text-brand-navy">{quote.durationDays} días</span>
+                <span className="font-semibold text-brand-navy">{selectedPlan.duration}</span>
               </div>
               <div className="flex items-center justify-between gap-4">
-                <span>Datos estimados</span>
-                <span className="font-semibold text-brand-navy">{quote.totalDataGb} GB</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span>Activación demo</span>
-                <span className="font-semibold text-brand-navy">{formatEuro(destination.activationFeeEuro)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span>Datos del viaje</span>
-                <span className="font-semibold text-brand-navy">{formatEuro(quote.dataCharge)}</span>
+                <span>Datos incluidos</span>
+                <span className="font-semibold text-brand-navy">{selectedPlan.data}</span>
               </div>
               <div className="border-t border-black/8 pt-4">
                 <div className="flex items-center justify-between gap-4 text-base font-semibold text-brand-burnt">
                   <span>Total demo</span>
-                  <span>{formatEuro(quote.total)}</span>
+                  <span>{formatEuro(selectedPlan.priceEuro)}</span>
                 </div>
               </div>
             </div>
 
             <StoreAddToCartButton
               item={{
-                id: `esim-${destination.slug}-${safeGbPerDay}-${quote.durationDays}-${startDate}-${endDate}`,
+                id: `esim-${destination.slug}-${selectedPlan.id}`,
                 type: "esim",
                 title: `eSIM ${destination.name}`,
-                subtitle: `${safeGbPerDay} GB/día · ${quote.durationDays} días · ${startDate} a ${endDate}`,
+                subtitle: `${selectedPlan.name} · ${selectedPlan.duration} · ${selectedPlan.data}`,
                 imageUrl: destination.imageUrl,
-                unitPriceEuro: quote.total,
+                unitPriceEuro: selectedPlan.priceEuro,
                 quantity: 1,
               }}
               idleLabel="Comprar"

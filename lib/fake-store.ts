@@ -18,6 +18,15 @@ export type SubscriptionPlan = {
   priceLabel: string;
 };
 
+export type EsimPlan = {
+  id: "basico" | "estandar" | "premium";
+  name: string;
+  duration: string;
+  data: string;
+  description: string;
+  priceEuro: number;
+};
+
 export type EsimDestination = {
   slug: string;
   name: string;
@@ -27,9 +36,6 @@ export type EsimDestination = {
   activation: string;
   infoNote: string;
   conditions: string[];
-  basePricePerGbDayEuro: number;
-  activationFeeEuro: number;
-  gbPerDayOptions: number[];
 };
 
 export type SouvenirProduct = {
@@ -133,6 +139,33 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
 ];
 
+export const esimPlans: EsimPlan[] = [
+  {
+    id: "basico",
+    name: "Plan Básico",
+    duration: "7 días",
+    data: "5 GB",
+    description: "Paquete semanal perfecto para escapadas cortas y puentes.",
+    priceEuro: 9.0,
+  },
+  {
+    id: "estandar",
+    name: "Plan Estándar",
+    duration: "15 días",
+    data: "15–20 GB",
+    description: "Paquete quincenal ideal para vacaciones de duración media.",
+    priceEuro: 18.0,
+  },
+  {
+    id: "premium",
+    name: "Plan Premium",
+    duration: "30 días",
+    data: "Datos ilimitados",
+    description: "Validez de 30 días con datos ilimitados para viajes largos.",
+    priceEuro: 35.0,
+  },
+];
+
 export const esimDestinations: EsimDestination[] = [
   {
     slug: "mundo",
@@ -143,9 +176,6 @@ export const esimDestinations: EsimDestination[] = [
     activation: "Se activa con código QR y mantiene tu línea principal disponible para llamadas y WhatsApp.",
     infoNote: "Ideal para viajes largos, interrail, luna de miel o rutas con varios tramos internacionales.",
     conditions: ["Sin permanencia", "Activación desde la app", "Recarga demo disponible"],
-    basePricePerGbDayEuro: 0.92,
-    activationFeeEuro: 4.5,
-    gbPerDayOptions: [1, 2, 3, 5, 10],
   },
   {
     slug: "europa",
@@ -156,9 +186,6 @@ export const esimDestinations: EsimDestination[] = [
     activation: "Instalación en menos de dos minutos y control del consumo desde el panel demo.",
     infoNote: "Muy útil para city breaks, Erasmus, viajes de negocios y rutas por varias capitales.",
     conditions: ["Cobertura multired", "Sin tarjeta física", "Compartir datos permitido"],
-    basePricePerGbDayEuro: 0.58,
-    activationFeeEuro: 2.9,
-    gbPerDayOptions: [1, 2, 3, 5, 8],
   },
   {
     slug: "japon",
@@ -169,9 +196,6 @@ export const esimDestinations: EsimDestination[] = [
     activation: "Compra, escanea y empieza a usar datos antes de salir del aeropuerto.",
     infoNote: "Perfecta si dependes de mapas, traducción y reservas en tiempo real durante el viaje.",
     conditions: ["Red 4G/5G local", "Uso intensivo de mapas", "Sin permanencia"],
-    basePricePerGbDayEuro: 0.84,
-    activationFeeEuro: 4.2,
-    gbPerDayOptions: [1, 2, 3, 5, 7],
   },
   {
     slug: "australia",
@@ -182,9 +206,6 @@ export const esimDestinations: EsimDestination[] = [
     activation: "Actívala antes de despegar para llegar con datos desde el primer minuto.",
     infoNote: "Recomendable para viajes largos, work & holiday o rutas entre Sídney, Melbourne y Brisbane.",
     conditions: ["Sin contrato", "Activación QR", "Panel de consumo demo"],
-    basePricePerGbDayEuro: 0.88,
-    activationFeeEuro: 4.8,
-    gbPerDayOptions: [1, 2, 4, 6, 10],
   },
   {
     slug: "brasil",
@@ -195,9 +216,6 @@ export const esimDestinations: EsimDestination[] = [
     activation: "Configuración guiada en la app y conexión inmediata tras validar el QR.",
     infoNote: "Pensada para subir contenido, pedir transporte y mantener ubicaciones compartidas durante el viaje.",
     conditions: ["Sin roaming extra", "Compatible con iPhone y Android", "Compra demo en euros"],
-    basePricePerGbDayEuro: 0.74,
-    activationFeeEuro: 3.6,
-    gbPerDayOptions: [1, 2, 3, 5, 8],
   },
 ];
 
@@ -350,51 +368,14 @@ export function getEsimDestination(slug: string) {
   return esimDestinations.find((destination) => destination.slug === slug) ?? null;
 }
 
+export function getEsimPlan(planId: EsimPlan["id"]) {
+  return esimPlans.find((plan) => plan.id === planId) ?? null;
+}
+
 export function getSubscriptionPlan(planId: string) {
   return subscriptionPlans.find((plan) => plan.id === planId) ?? null;
 }
 
 export function getSouvenirCollection(slug: string) {
   return souvenirCollections.find((collection) => collection.slug === slug) ?? null;
-}
-
-export function clampEsimGbPerDay(destination: EsimDestination, requestedGbPerDay?: number | null) {
-  if (!requestedGbPerDay || Number.isNaN(requestedGbPerDay)) {
-    return destination.gbPerDayOptions[1] ?? destination.gbPerDayOptions[0] ?? 1;
-  }
-
-  return destination.gbPerDayOptions.includes(requestedGbPerDay)
-    ? requestedGbPerDay
-    : destination.gbPerDayOptions[1] ?? destination.gbPerDayOptions[0] ?? 1;
-}
-
-export function getEsimDurationDays(startDate: string, endDate: string) {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    return 1;
-  }
-
-  const normalizedStart = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-  const normalizedEnd = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-  const diffMs = normalizedEnd.getTime() - normalizedStart.getTime();
-  const diffDays = Math.floor(diffMs / 86_400_000);
-
-  return Math.max(1, diffDays + 1);
-}
-
-export function calculateEsimQuote(destination: EsimDestination, gbPerDay: number, startDate: string, endDate: string) {
-  const durationDays = getEsimDurationDays(startDate, endDate);
-  const rawDataCharge = durationDays * gbPerDay * destination.basePricePerGbDayEuro;
-  const durationDiscount = durationDays >= 21 ? 0.9 : durationDays >= 10 ? 0.95 : 1;
-  const dataCharge = Number((rawDataCharge * durationDiscount).toFixed(2));
-  const total = Number((destination.activationFeeEuro + dataCharge).toFixed(2));
-
-  return {
-    durationDays,
-    totalDataGb: durationDays * gbPerDay,
-    dataCharge,
-    total,
-  };
 }

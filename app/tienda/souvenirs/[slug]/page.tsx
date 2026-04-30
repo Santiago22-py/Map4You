@@ -2,19 +2,16 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { StoreAddToCartButton } from "@/components/store-add-to-cart-button";
-import { StoreBackLink, StoreCartLink, StorePageShell, StorePanel, StoreSearchForm } from "@/components/store-shell";
+import { StoreBackLink, StoreCartLink, StorePageShell, StorePanel } from "@/components/store-shell";
 import { formatEuro, getSouvenirCollection } from "@/lib/fake-store";
 
 type StoreSouvenirCollectionPageProps = {
   params: Promise<{
     slug: string;
   }>;
-  searchParams: Promise<{
-    q?: string;
-  }>;
 };
 
-export default async function StoreSouvenirCollectionPage({ params, searchParams }: StoreSouvenirCollectionPageProps) {
+export default async function StoreSouvenirCollectionPage({ params }: StoreSouvenirCollectionPageProps) {
   const { slug } = await params;
   const collection = getSouvenirCollection(slug);
 
@@ -22,30 +19,18 @@ export default async function StoreSouvenirCollectionPage({ params, searchParams
     notFound();
   }
 
-  const { q = "" } = await searchParams;
-  const normalizedQuery = q.trim().toLowerCase();
-  const products = normalizedQuery
-    ? collection.products.filter((product) => product.name.toLowerCase().includes(normalizedQuery) || product.description.toLowerCase().includes(normalizedQuery))
-    : collection.products;
+  const products = collection.products;
 
   return (
     <StorePageShell title="Llévate tu viaje a casa con Map4You">
       <StorePanel className="space-y-8 sm:space-y-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <StoreBackLink href="/tienda/souvenirs" label="Volver a souvenirs" />
-          <div className="flex items-center gap-4">
-            <StoreSearchForm action={`/tienda/souvenirs/${collection.slug}`} defaultValue={q} />
-            <StoreCartLink />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <h2 className="font-display text-[2.55rem] font-semibold tracking-[-0.06em] text-brand-blue">Recuerdos de</h2>
-          <p className="font-display text-[2.55rem] font-semibold tracking-[-0.06em] text-brand-burnt">{collection.name}</p>
+          <StoreCartLink />
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-balance font-display text-[2rem] font-semibold tracking-[-0.05em] text-brand-navy">Nuestras sugerencias según tus itinerarios registrados</h3>
+          <h2 className="font-display text-[2.55rem] font-semibold tracking-[-0.06em] text-brand-blue">{collection.name}</h2>
           <p className="max-w-[56rem] text-[1rem] leading-8 text-black/72">{collection.summary}</p>
         </div>
 
@@ -85,7 +70,7 @@ export default async function StoreSouvenirCollectionPage({ params, searchParams
           ))}
         </div>
 
-        {products.length === 0 ? <p className="text-center text-sm text-black/58">No hay souvenirs que coincidan con esa búsqueda dentro de esta colección.</p> : null}
+
       </StorePanel>
     </StorePageShell>
   );

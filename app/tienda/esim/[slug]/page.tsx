@@ -2,23 +2,19 @@ import { notFound } from "next/navigation";
 
 import { StoreEsimConfigurator } from "@/components/store-esim-configurator";
 import { StoreBackLink, StorePageShell } from "@/components/store-shell";
-import { clampEsimGbPerDay, getEsimDestination } from "@/lib/fake-store";
+import { esimPlans, getEsimDestination, type EsimPlan } from "@/lib/fake-store";
 
 type StoreEsimDetailPageProps = {
   params: Promise<{
     slug: string;
   }>;
   searchParams: Promise<{
-    gbPerDay?: string;
-    start?: string;
-    end?: string;
+    plan?: string;
   }>;
 };
 
-function isoDateAfter(daysFromToday: number) {
-  const date = new Date();
-  date.setDate(date.getDate() + daysFromToday);
-  return date.toISOString().slice(0, 10);
+function isValidPlanId(value: string | undefined): value is EsimPlan["id"] {
+  return esimPlans.some((p) => p.id === value);
 }
 
 export default async function StoreEsimDetailPage({ params, searchParams }: StoreEsimDetailPageProps) {
@@ -29,10 +25,8 @@ export default async function StoreEsimDetailPage({ params, searchParams }: Stor
     notFound();
   }
 
-  const { gbPerDay, start, end } = await searchParams;
-  const selectedGbPerDay = clampEsimGbPerDay(destination, gbPerDay ? Number(gbPerDay) : null);
-  const startDate = start ?? isoDateAfter(7);
-  const endDate = end ?? isoDateAfter(16);
+  const { plan } = await searchParams;
+  const initialPlanId: EsimPlan["id"] = isValidPlanId(plan) ? plan : "estandar";
 
   return (
     <StorePageShell title="Consigue tu eSIM con Map4You">
@@ -40,7 +34,7 @@ export default async function StoreEsimDetailPage({ params, searchParams }: Stor
         <div className="xl:col-span-2">
           <StoreBackLink href="/tienda/esim" label="Volver a eSIM" />
         </div>
-        <StoreEsimConfigurator destination={destination} initialGbPerDay={selectedGbPerDay} initialStartDate={startDate} initialEndDate={endDate} />
+        <StoreEsimConfigurator destination={destination} initialPlanId={initialPlanId} />
       </div>
     </StorePageShell>
   );

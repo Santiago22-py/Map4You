@@ -1,5 +1,5 @@
 import { countries, getPlaceBySlug } from "@/lib/public-data";
-import { subscriptionPlans, esimDestinations, souvenirCollections, formatEuro } from "@/lib/fake-store";
+import { esimDestinations, esimPlans, formatEuro, souvenirCollections, subscriptionPlans } from "@/lib/fake-store";
 
 export type ChatSuggestion = {
   id: string;
@@ -52,31 +52,30 @@ function buildDestinationSummary() {
 }
 
 function buildSubscriptionPlansSummary() {
-  const parts = subscriptionPlans.map((plan) => {
-    const price = plan.priceEuro === 0 ? "gratis" : `${formatEuro(plan.priceEuro)}/mes`;
-    const bulletList = plan.bullets.join(", ");
-    return `${plan.title} (${price}): ${bulletList}`;
-  });
-  return `Planes de suscripción: hay ${subscriptionPlans.length} planes. ${parts.join(". ")}. Ruta: /tienda/planes.`;
+  const planSummaries = subscriptionPlans
+    .map((plan) => `${plan.title} (${plan.priceLabel}): ${plan.bullets.join(", ")}`)
+    .join(". ");
+  return `Planes de suscripción: hay ${subscriptionPlans.length} planes. ${planSummaries}. Ruta: /tienda/planes.`;
 }
 
 function buildEsimSummary() {
-  const destList = esimDestinations.map((dest) => {
-    const price = dest.basePricePerGbDayEuro.toFixed(2).replace(".", ",");
-    return `${dest.name} (desde ${price} €/GB/día)`;
-  });
-  return `eSIM: se pueden configurar eSIMs de datos para ${esimDestinations.length} destinos: ${destList.join(", ")}. El precio final depende de los GB diarios elegidos y la duración del viaje; hay descuentos para estancias de 10 o más días. Ruta: /tienda/esim.`;
+  const destNames = esimDestinations.map((d) => d.name).join(", ");
+  const planSummaries = esimPlans
+    .map((p) => `${p.name} (${p.data}, ${p.duration}, ${formatEuro(p.priceEuro)})`)
+    .join(", ");
+  return `eSIM: se pueden configurar eSIMs de datos para ${esimDestinations.length} destinos: ${destNames}. Para cada destino hay ${esimPlans.length} planes fijos: ${planSummaries}. El plan se elige directamente en la página del destino. Ruta: /tienda/esim.`;
 }
 
 function buildSouvenirsSummary() {
-  const colList = souvenirCollections.map((col) => {
-    const prices = col.products.map((p) => p.priceEuro);
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const count = col.products.length;
-    return `${col.name} (${count} producto${count !== 1 ? "s" : ""}, desde ${formatEuro(min)} hasta ${formatEuro(max)})`;
-  });
-  return `Souvenirs: hay colecciones de recuerdos de ${souvenirCollections.length} destinos: ${colList.join(", ")}. Son productos físicos de demostración. Ruta: /tienda/souvenirs.`;
+  const collectionSummaries = souvenirCollections
+    .map((c) => {
+      const prices = c.products.map((p) => p.priceEuro);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      return `${c.name} (${c.products.length} producto${c.products.length !== 1 ? "s" : ""}, desde ${formatEuro(min)} hasta ${formatEuro(max)})`;
+    })
+    .join(", ");
+  return `Souvenirs: hay colecciones de recuerdos de ${souvenirCollections.length} destinos: ${collectionSummaries}. Son productos físicos de demostración. Ruta: /tienda/souvenirs.`;
 }
 
 export function getChatbotKnowledgeBase() {

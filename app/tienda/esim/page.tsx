@@ -2,9 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { StoreBackLink, StoreCartLink, StorePageShell, StorePanel } from "@/components/store-shell";
-import { esimPlans, formatEuro } from "@/lib/fake-store";
+import { esimDestinations, esimPlans, formatEuro } from "@/lib/fake-store";
 
 export default async function StoreEsimPage() {
+  const startingPriceEuro = Math.min(...esimPlans.map((p) => p.priceEuro));
+
   return (
     <StorePageShell title="Consigue tu eSIM con Map4You">
       <StorePanel className="space-y-8 sm:space-y-10">
@@ -21,15 +23,15 @@ export default async function StoreEsimPage() {
         <div className="mx-auto h-px w-full max-w-[68rem] bg-black/14" />
 
         <div className="grid gap-5 sm:grid-cols-3">
-          {esimPlans.map((plan) => (
-            <Link key={plan.slug} href={`/tienda/esim/${plan.slug}`} className="group flex flex-col items-center gap-4 rounded-[1.5rem] px-4 py-6 text-center transition hover:bg-[#f7efe8]">
+          {esimDestinations.map((dest) => (
+            <Link key={dest.slug} href={`/tienda/esim/${dest.slug}`} className="group flex flex-col items-center gap-4 rounded-[1.5rem] px-4 py-6 text-center transition hover:bg-[#f7efe8]">
               <div className="relative h-28 w-28 overflow-hidden rounded-full shadow-[0_10px_20px_rgba(10,48,120,0.16)] ring-1 ring-black/8 transition group-hover:-translate-y-1">
-                <Image src={plan.imageUrl} alt={plan.title} fill sizes="7rem" quality={92} className="object-cover" />
+                <Image src={dest.imageUrl} alt={dest.name} fill sizes="7rem" quality={92} className="object-cover" />
               </div>
               <div className="space-y-1">
-                <p className="text-[1.45rem] font-semibold text-brand-blue">{plan.title}</p>
-                <p className="text-sm font-semibold text-brand-burnt">{formatEuro(plan.priceEuro)}</p>
-                <p className="mt-1 text-sm leading-6 text-black/65">{plan.blurb}</p>
+                <p className="text-[1.45rem] font-semibold text-brand-blue">{dest.name}</p>
+                <p className="text-sm font-semibold text-brand-burnt">desde {formatEuro(startingPriceEuro)}</p>
+                <p className="mt-1 text-sm leading-6 text-black/65">{dest.blurb}</p>
               </div>
             </Link>
           ))}

@@ -1,4 +1,5 @@
 import { countries, getPlaceBySlug } from "@/lib/public-data";
+import { esimDestinations, esimPlans, formatEuro, souvenirCollections, subscriptionPlans } from "@/lib/fake-store";
 
 export type ChatSuggestion = {
   id: string;
@@ -50,6 +51,33 @@ function buildDestinationSummary() {
     .join("\n\n");
 }
 
+function buildSubscriptionPlansSummary() {
+  const planSummaries = subscriptionPlans
+    .map((plan) => `${plan.title} (${plan.priceLabel}): ${plan.bullets.join(", ")}`)
+    .join(". ");
+  return `Planes de suscripción: hay ${subscriptionPlans.length} planes. ${planSummaries}. Ruta: /tienda/planes.`;
+}
+
+function buildEsimSummary() {
+  const destNames = esimDestinations.map((d) => d.name).join(", ");
+  const planSummaries = esimPlans
+    .map((p) => `${p.name} (${p.data}, ${p.duration}, ${formatEuro(p.priceEuro)})`)
+    .join(", ");
+  return `eSIM: se pueden configurar eSIMs de datos para ${esimDestinations.length} destinos: ${destNames}. Para cada destino hay ${esimPlans.length} planes fijos: ${planSummaries}. El plan se elige directamente en la página del destino. Ruta: /tienda/esim.`;
+}
+
+function buildSouvenirsSummary() {
+  const collectionSummaries = souvenirCollections
+    .map((c) => {
+      const prices = c.products.map((p) => p.priceEuro);
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      return `${c.name} (${c.products.length} producto${c.products.length !== 1 ? "s" : ""}, desde ${formatEuro(min)} hasta ${formatEuro(max)})`;
+    })
+    .join(", ");
+  return `Souvenirs: hay colecciones de recuerdos de ${souvenirCollections.length} destinos: ${collectionSummaries}. Son productos físicos de demostración. Ruta: /tienda/souvenirs.`;
+}
+
 export function getChatbotKnowledgeBase() {
   return [
     "Producto: Map 4 You es una web para descubrir destinos, explorar lugares y gestionar funciones de viaje personales cuando el usuario inicia sesión.",
@@ -64,9 +92,9 @@ export function getChatbotKnowledgeBase() {
     "Perfil: cuando el usuario inicia sesión puede ver su perfil, álbumes de viaje, amistades, solicitudes y estadísticas relacionadas con ciudades o países visitados.",
     "Álbumes y social: el producto incluye álbumes de viaje, amistades y solicitudes sociales en la zona autenticada.",
     "Tienda (mock): Map 4 You tiene una tienda demo accesible en /tienda con tres secciones: souvenirs, planes de suscripción y eSIM. Es una tienda de demostración, los pagos no son reales pero el flujo completo está simulado.",
-    "Planes de suscripción: hay tres planes. Plan Nómada (gratis): búsqueda de destinos, hasta 3 itinerarios, chat social, mapa online, chatbot básico y hasta 3 álbumes. Plan Aventurero (9,95 €/mes): itinerarios ilimitados, mapa offline, pack de 5 souvenirs con descuento, chatbot avanzado y álbumes ilimitados. Plan Explorador (29,99 €/mes): todo lo anterior más 20% de descuento en eSIM, 1 pack de souvenirs gratuito, planificación colaborativa en tiempo real y acceso a agente de viajes personalizado. Ruta: /tienda/planes.",
-    "eSIM: se pueden configurar eSIMs de datos para cinco destinos: Mundo (más de 110 países), Europa (39 países), Japón, Australia y Brasil. Para cada destino hay tres planes fijos: Plan Básico (5 GB, 7 días, 9 €), Plan Estándar (15–20 GB, 15 días, 18 €) y Plan Premium (datos ilimitados, 30 días, 35 €). El plan se elige directamente en la página del destino. Ruta: /tienda/esim.",
-    "Souvenirs: hay colecciones de recuerdos de cuatro destinos: España (8 productos, desde 9 € hasta 26 €), Portugal (2 productos), Brasil (2 productos) y Japón (2 productos). Son productos físicos de demostración. Ruta: /tienda/souvenirs.",
+    buildSubscriptionPlansSummary(),
+    buildEsimSummary(),
+    buildSouvenirsSummary(),
     "Cómo contestar preguntas comparativas: si el usuario compara dos destinos, aclara primero qué está disponible ahora en la web y luego resume la diferencia en el catálogo público. Ejemplo correcto: París tiene detalle completo ahora; Barcelona sigue visible como próximamente.",
     "Cómo contestar preguntas de ayuda: cuando expliques pasos, usa 2 o 3 frases o una lista corta. No des respuestas largas si la pregunta es simple.",
     "Soporte de respuestas: el asistente debe contestar en español por defecto, de forma breve, útil y concreta. Puede sugerir rutas del sitio como /auth, /profile, /search?q=france, /search?q=italy, /search?q=spain, /tienda, /tienda/planes, /tienda/esim y /tienda/souvenirs cuando sea útil.",

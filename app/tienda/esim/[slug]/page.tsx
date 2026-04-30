@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { StoreEsimConfigurator } from "@/components/store-esim-configurator";
 import { StoreBackLink, StorePageShell } from "@/components/store-shell";
-import { getEsimDestination, type EsimPlan } from "@/lib/fake-store";
+import { esimPlans, getEsimDestination, type EsimPlan } from "@/lib/fake-store";
 
 type StoreEsimDetailPageProps = {
   params: Promise<{
@@ -13,10 +13,8 @@ type StoreEsimDetailPageProps = {
   }>;
 };
 
-const VALID_PLAN_IDS: EsimPlan["id"][] = ["basico", "estandar", "premium"];
-
 function isValidPlanId(value: string | undefined): value is EsimPlan["id"] {
-  return VALID_PLAN_IDS.includes(value as EsimPlan["id"]);
+  return esimPlans.some((p) => p.id === value);
 }
 
 export default async function StoreEsimDetailPage({ params, searchParams }: StoreEsimDetailPageProps) {

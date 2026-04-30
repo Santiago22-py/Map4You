@@ -52,21 +52,6 @@ export function StoreEsimConfigurator({ destination, initialPlanId }: StoreEsimC
 
       <section className="rounded-[1.8rem] bg-white p-6 shadow-[0_12px_28px_rgba(0,0,0,0.1)] ring-1 ring-black/10 sm:p-8 space-y-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <form action="/tienda/esim" method="get" className="flex w-full max-w-[28rem] flex-col gap-3 sm:flex-row sm:items-center">
-            <label htmlFor="store-esim-query" className="sr-only">
-              Buscar destino
-            </label>
-            <input
-              id="store-esim-query"
-              type="search"
-              name="q"
-              placeholder="Escribir destino"
-              className="min-w-0 flex-1 rounded-full border border-black/35 bg-white px-5 py-3 text-base text-brand-ink outline-none transition focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/12"
-            />
-            <button type="submit" className="rounded-full bg-[linear-gradient(180deg,#5f8ae6,#244a9a)] px-7 py-3 text-base font-semibold text-white shadow-[0_12px_24px_rgba(36,74,154,0.24)] transition hover:-translate-y-0.5">
-              Buscar
-            </button>
-          </form>
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-semibold uppercase tracking-[0.08em] text-brand-burnt/80">Total</p>

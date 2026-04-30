@@ -368,7 +368,7 @@ export function getEsimDestination(slug: string) {
   return esimDestinations.find((destination) => destination.slug === slug) ?? null;
 }
 
-export function getEsimPlan(planId: string) {
+export function getEsimPlan(planId: EsimPlan["id"]) {
   return esimPlans.find((plan) => plan.id === planId) ?? null;
 }
 
